@@ -1,0 +1,1127 @@
+/* Font Import */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Theme Variables and Base Styles */
+:root {
+  /* Colors */
+  --primary-green: #22c55e;
+  --primary-green-dark: #16a34a;
+  --header-text: #1e293b;
+  --subheader-text: #475569;
+  --body-text: #334155;
+  --light-gray: #64748b;
+  --bg-primary: #f0f4f8;
+  --bg-white: #ffffff;
+  --border-light: #e2e8f0;
+  --bg-tag: #e2e8f0;
+  --bg-light: #f1f5f9;
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+  
+  /* Spacing */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 0.75rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+}
+
+/* Base Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Body and App Container */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--body-text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 2rem;
+}
+
+/* Main Container */
+.main-container,
+.container {
+  background-color: var(--bg-white);
+  width: 100%;
+  max-width: 448px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Card Styles */
+.card {
+  background-color: var(--bg-white);
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+}
+
+/* Typography */
+.header-text,
+.title,
+h1 {
+  color: var(--header-text);
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.subheader-text,
+.subtitle {
+  color: var(--subheader-text);
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+
+.section-title,
+h2 {
+  color: var(--header-text);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+/* Header Styles */
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.logo {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Quick Start Tags */
+.quick-start-tag {
+  background-color: var(--bg-tag);
+  color: var(--body-text);
+  border-radius: var(--radius-full);
+  padding: 0.75rem;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.quick-start-tag:hover {
+  background-color: var(--border-light);
+  transform: translateY(-1px);
+}
+
+.quick-start-tag.active {
+  background-color: var(--primary-green);
+  color: white;
+  border-color: var(--primary-green);
+}
+
+.quick-start-tag .material-icons {
+  margin-right: 0.5rem;
+  font-size: 1.25rem;
+}
+
+/* Time Buttons */
+.time-button,
+.duration-option {
+  background-color: var(--bg-light);
+  color: var(--body-text);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.time-button:hover,
+.duration-option:hover {
+  background-color: var(--border-light);
+}
+
+.time-button-active,
+.time-button.active,
+.duration-option.active {
+  background-color: var(--primary-green);
+  color: white;
+}
+
+/* Goal Cards */
+.goal-card {
+  background-color: var(--bg-white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.goal-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.goal-card.active {
+  background-color: var(--primary-green);
+  color: white;
+  border-color: var(--primary-green);
+}
+
+.goal-card img,
+.goal-icon {
+  width: 3rem;
+  height: 3rem;
+  margin-right: 1rem;
+  font-size: 2rem;
+}
+
+.goal-card-title {
+  color: var(--header-text);
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.goal-card.active .goal-card-title {
+  color: white;
+}
+
+.goal-card-description {
+  color: var(--subheader-text);
+  font-size: 0.875rem;
+}
+
+.goal-card.active .goal-card-description {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.goal-card .material-icons {
+  margin-left: auto;
+  color: #94a3b8;
+}
+
+.goal-card.active .material-icons {
+  color: white;
+}
+
+/* Forms and Inputs */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--header-text);
+  font-size: 1rem;
+}
+
+/* Buttons */
+.btn {
+  background-color: var(--primary-green);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.btn:hover {
+  background-color: var(--primary-green-dark);
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  width: auto;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+/* Navigation Bar */
+.nav-bar {
+  background-color: var(--bg-white);
+  border-top: 1px solid var(--border-light);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0.75rem 0;
+  max-width: 448px;
+  margin: 0 auto;
+}
+
+.nav-item {
+  color: var(--light-gray);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.75rem;
+  cursor: pointer;
+  border: none;
+  background: none;
+  transition: color 0.2s ease;
+}
+
+.nav-item:hover {
+  color: var(--primary-green);
+}
+
+.nav-item-active {
+  color: var(--primary-green);
+}
+
+.nav-item .material-icons {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Grid Layouts */
+.goal-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.duration-selector {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.duration-selector button {
+  flex: 1;
+}
+
+/* Sections */
+section {
+  margin-bottom: 2rem;
+}
+
+/* Quick Start Grid */
+.quick-start-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+/* Exercise Display */
+.exercise-item {
+  background-color: var(--bg-light);
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.exercise-item.current {
+  background-color: var(--primary-green);
+  color: white;
+}
+
+.exercise-name {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.exercise-duration {
+  font-size: 0.875rem;
+  opacity: 0.8;
+}
+
+/* Timer */
+.timer-display {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--primary-green);
+  text-align: center;
+  margin: 1.5rem 0;
+  font-family: 'Courier New', monospace;
+}
+
+/* Progress Bar */
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background-color: var(--border-light);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 1rem 0;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: var(--primary-green);
+  transition: width 0.3s ease;
+}
+
+/* Stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.stat-card {
+  background-color: var(--bg-light);
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary-green);
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--light-gray);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .quick-start-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .main-container,
+  .container {
+    border-radius: 0;
+    min-height: 100vh;
+  }
+}
+
+/* Utilities */
+.text-center {
+  text-align: center;
+}
+
+.mt-2 {
+  margin-top: 0.5rem;
+}
+
+.mb-3 {
+  margin-bottom: 0.75rem;
+}
+
+.mb-8 {
+  margin-bottom: 2rem;
+}
+
+/* Hide default scrollbar but maintain functionality */
+.exercise-list-small::-webkit-scrollbar {
+  width: 6px;
+}
+
+.exercise-list-small::-webkit-scrollbar-track {
+  background: var(--bg-light);
+  border-radius: 3px;
+}
+
+.exercise-list-small::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 3px;
+}
+
+.exercise-list-small::-webkit-scrollbar-thumb:hover {
+  background: var(--light-gray);
+}
+/* Loading and Animations */
+.generating-routine {
+  text-align: center;
+  padding: 3rem;
+}
+
+.generating-routine h3 {
+  color: var(--primary-green);
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.generating-routine p {
+  color: var(--light-gray);
+  font-size: 1rem;
+}
+
+.spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 4px solid var(--border-light);
+  border-top: 4px solid var(--primary-green);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1.5rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Session Complete Styles */
+.session-complete {
+  text-align: center;
+  padding: 2rem;
+}
+
+.session-complete h2 {
+  color: var(--primary-green);
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.celebration {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  animation: bounce 1s ease-in-out;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+/* Exercise List Styles */
+.exercise-list-small {
+  margin: 2rem 0;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.exercise-list-small h4 {
+  color: var(--header-text);
+  margin-bottom: 1rem;
+  text-align: center;
+  font-size: 1.125rem;
+}
+
+.exercise-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  background: var(--bg-light);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.exercise-summary:hover {
+  background: var(--border-light);
+  transform: translateX(4px);
+}
+
+.exercise-summary.current {
+  background: var(--primary-green);
+  color: white;
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+.exercise-summary.completed {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--primary-green-dark);
+  border-left: 3px solid var(--primary-green);
+}
+
+.exercise-summary.completed::after {
+  content: "✓";
+  font-weight: 700;
+  color: var(--primary-green);
+  margin-left: 0.5rem;
+}
+
+/* Timer Specific Styles */
+.timer-display.warning {
+  color: #ff9800;
+}
+
+.timer-display.danger {
+  color: #f44336;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* Button Icons */
+.btn .material-icons,
+.btn-secondary .material-icons {
+  vertical-align: middle;
+  font-size: 1.25rem;
+}
+
+/* Navigation Buttons */
+.navigation-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+}
+
+.navigation-buttons .btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* Routine Meta */
+.routine-meta {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  color: var(--light-gray);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.routine-meta span {
+  display: flex;
+  align-items: center;
+}
+
+/* Current Exercise Display Enhanced */
+.current-exercise-display {
+  background: linear-gradient(135deg, var(--primary-green), var(--primary-green-dark));
+  color: white;
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+  text-align: center;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
+}
+
+.exercise-counter {
+  font-size: 0.875rem;
+  opacity: 0.9;
+  margin-bottom: 0.5rem;
+}
+
+.current-exercise-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.current-exercise-description {
+  font-size: 1rem;
+  opacity: 0.95;
+  line-height: 1.5;
+}
+
+/* Form Improvements */
+.preferences-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.stats-summary {
+  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  text-align: center;
+  margin-bottom: 1rem;
+  color: var(--primary-green-dark);
+  font-weight: 500;
+}
+
+/* Disabled States */
+.btn:disabled,
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Focus States */
+.btn:focus,
+.time-button:focus,
+.goal-card:focus,
+.quick-start-tag:focus {
+  outline: 3px solid rgba(34, 197, 94, 0.3);
+  outline-offset: 2px;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 640px) {
+  .app {
+    padding-top: 0;
+  }
+  
+  .navigation-buttons {
+    flex-direction: column;
+  }
+  
+  .navigation-buttons .btn {
+    width: 100%;
+  }
+  
+  .timer-controls {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .timer-controls .btn {
+    width: 100%;
+  }
+  
+  .goal-grid {
+    gap: 0.75rem;
+  }
+  
+  .nav-bar {
+    padding: 0.5rem 0;
+  }
+}/* Material Icons Fix */
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Additional responsive improvements */
+@media (max-width: 480px) {
+  .header-text {
+    font-size: 1.5rem;
+  }
+  
+  .subheader-text {
+    font-size: 0.875rem;
+  }
+  
+  .quick-start-tag {
+    padding: 0.625rem;
+  }
+  
+  .quick-start-tag p {
+    font-size: 0.813rem;
+  }
+}
+/* Timer Controls Enhanced */
+.timer-controls {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+/* Ensure proper spacing at bottom for nav bar */
+.main-container {
+  padding-bottom: 5rem; /* Space for fixed nav bar */
+}
+
+/* Exercise Instructions Toggle */
+.instructions-toggle {
+  background: none;
+  border: none;
+  color: var(--primary-green);
+  cursor: pointer;
+  font-size: 0.875rem;
+  text-decoration: underline;
+  margin-top: 0.5rem;
+}
+
+/* Smooth transitions */
+* {
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+/* Print styles */
+@media print {
+  .nav-bar,
+  .btn,
+  .timer-controls,
+  .navigation-buttons {
+    display: none;
+  }
+  
+  .main-container {
+    box-shadow: none;
+    padding-bottom: 0;
+  }
+}
+
+/* Dark mode support (optional) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: #0f172a;
+    --bg-white: #1e293b;
+    --header-text: #f1f5f9;
+    --subheader-text: #cbd5e1;
+    --body-text: #e2e8f0;
+    --light-gray: #94a3b8;
+    --border-light: #334155;
+    --bg-tag: #334155;
+    --bg-light: #334155;
+  }
+  
+  .main-container {
+    background-color: var(--bg-white);
+  }
+  
+  .goal-card {
+    background-color: #334155;
+  }
+  
+  .goal-card:hover {
+    background-color: #475569;
+  }
+  
+  .stat-card,
+  .exercise-summary {
+    background-color: #334155;
+  }
+}
+
+/* Final polish */
+.btn {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.routine-container {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Ensure icons align properly in buttons */
+.btn .material-icons,
+.btn-secondary .material-icons,
+.nav-item .material-icons {
+  vertical-align: middle;
+}
+
+/* Fix for goal card icons */
+.goal-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3rem;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Selection color */
+::selection {
+  background-color: var(--primary-green);
+  color: white;
+}
+/* Equipment Grid Styles */
+.equipment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.equipment-card {
+  background-color: var(--bg-light);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.equipment-card:hover {
+  background-color: var(--border-light);
+  transform: translateY(-2px);
+}
+
+.equipment-card.active {
+  background-color: var(--primary-green);
+  color: white;
+  border-color: var(--primary-green);
+}
+
+.equipment-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.equipment-name {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.equipment-desc {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.equipment-card.active .equipment-desc {
+  opacity: 0.9;
+}
+
+/* Video Player Styles */
+.video-container {
+  position: relative;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  height: 0;
+  overflow: hidden;
+  margin: 1rem 0;
+  border-radius: var(--radius-md);
+  background-color: var(--bg-light);
+}
+
+.video-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: var(--radius-md);
+}
+
+.video-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  background-color: var(--bg-light);
+  border-radius: var(--radius-md);
+  margin: 1rem 0;
+}
+
+.video-placeholder .material-icons {
+  font-size: 3rem;
+  color: var(--light-gray);
+  margin-bottom: 0.5rem;
+}
+
+.video-placeholder p {
+  color: var(--light-gray);
+  font-size: 0.875rem;
+}
+
+/* Equipment Tags in Exercise Display */
+.equipment-tags {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.equipment-tag {
+  background-color: var(--bg-tag);
+  color: var(--body-text);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.current-exercise-display .equipment-tag {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* Exercise Benefits */
+.exercise-benefits {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+}
+
+.exercise-benefits h4 {
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.9;
+}
+
+.exercise-benefits ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.exercise-benefits li {
+  font-size: 0.813rem;
+  opacity: 0.85;
+  margin-bottom: 0.25rem;
+  padding-left: 1rem;
+  position: relative;
+}
+
+.exercise-benefits li:before {
+  content: '•';
+  position: absolute;
+  left: 0;
+}
+
+/* Spinner Animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* API Configuration Notice */
+.api-notice {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.api-notice code {
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 0.125rem 0.25rem;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+}
+
+/* Responsive Equipment Grid */
+@media (max-width: 640px) {
+  .equipment-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0.5rem;
+  }
+  
+  .equipment-card {
+    padding: 0.75rem;
+  }
+  
+  .equipment-icon {
+    font-size: 1.5rem;
+  }
+  
+  .equipment-name {
+    font-size: 0.75rem;
+  }
+  
+  .equipment-desc {
+    display: none;
+  }
+}
+/* Form Input Styles */
+.form-input {
+  width: 100%;
+  padding: 0.875rem;
+  border: 2px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background-color: var(--bg-white);
+  color: var(--body-text);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+.form-input::placeholder {
+  color: var(--light-gray);
+}
+
+/* API Configuration Styles */
+.api-configuration {
+  padding: 1rem 0;
+}
+
+.api-configuration .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.api-configuration a {
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.api-configuration a:hover {
+  text-decoration: underline;
+}

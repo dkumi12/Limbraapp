@@ -1,0 +1,4 @@
+{
+  "plugins": ["react-hooks"],
+  "extends": ["react-app", "plugin:react-hooks/recommended"]
+} 
