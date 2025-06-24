@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="24" height="24">
+    <desc>An icon of a tennis ball, shown as a yellow-green circle with a white seam.</desc>
+    <circle cx="50" cy="50" r="45" fill="#DCE775" stroke="#cccccc" stroke-width="1"/>
+    <path d="M12.2,69.5 C34.5,89.5 65.5,89.5 87.8,69.5" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
+    <path d="M12.2,30.5 C34.5,10.5 65.5,10.5 87.8,30.5" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
+</svg> 
