@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { GOALS, BODY_PARTS, DIFFICULTY_LEVELS, validateRoutinePreferences } from '../routineGenerator'
 import { EQUIPMENT_TYPES, EQUIPMENT_INFO } from '../services/api'
-import Icon from 'react-eva-icons';
+import EvaIcon from './EvaIcon';
 
 const PreferencesForm = ({ onGenerate, stats }) => {
   const [duration, setDuration] = useState(10)
@@ -237,7 +237,7 @@ const PreferencesForm = ({ onGenerate, stats }) => {
               className="quick-start-tag"
               onClick={option.preset}
             >
-              <Icon name={quickStartEvaIcons[option.id]} fill={option.iconColor} width={24} height={24} />
+              <EvaIcon name={quickStartEvaIcons[option.id]} fill={option.iconColor} width={24} height={24} />
               <div>
                 <p style={{ fontWeight: 500, marginBottom: '0.125rem' }}>{option.title}</p>
                 <p style={{ fontSize: '0.75rem', color: '#64748b' }}>{option.subtitle}</p>

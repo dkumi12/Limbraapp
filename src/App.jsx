@@ -8,7 +8,7 @@ import SavedRoutines from './components/SavedRoutines'
 import Settings from './components/Settings'
 import Profile from './components/Profile'
 import './theme.css'
-import Icon from 'react-eva-icons'
+import EvaIcon from './components/EvaIcon'
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState('preferences')
@@ -188,19 +188,19 @@ function App() {
         {/* Navigation Bar - always visible */}
         <nav className="nav-bar">
           <button className="nav-item" onClick={() => setCurrentScreen('preferences')}>
-            <Icon name="home-outline" fill="#22d3ee" width={24} height={24} />
+            <EvaIcon name="home-outline" fill="#22d3ee" width={24} height={24} />
             Home
           </button>
           <button className="nav-item" onClick={() => setCurrentScreen('saved')}>
-            <Icon name="bookmark-outline" fill="#22d3ee" width={24} height={24} />
+            <EvaIcon name="bookmark-outline" fill="#22d3ee" width={24} height={24} />
             Saved
           </button>
           <button className="nav-item" onClick={() => setCurrentScreen('profile')}>
-            <Icon name="person-outline" fill="#22d3ee" width={24} height={24} />
+            <EvaIcon name="person-outline" fill="#22d3ee" width={24} height={24} />
             Profile
           </button>
           <button className="nav-item" onClick={() => setShowAPIConfig(true)}>
-            <Icon name="settings-outline" fill="#22d3ee" width={24} height={24} />
+            <EvaIcon name="settings-outline" fill="#22d3ee" width={24} height={24} />
             Settings
           </button>
         </nav>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import Icon from 'react-eva-icons';
+import EvaIcon from './EvaIcon';
 
 const Settings = ({ onClose }) => {
   const [openRouterKey, setOpenRouterKey] = useState('')
@@ -369,19 +369,19 @@ const Settings = ({ onClose }) => {
       {/* Navigation bar always visible at the bottom */}
       <nav className="nav-bar">
         <button className="nav-item" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'home' }))}>
-          <Icon name="home-outline" width={24} height={24} fill="#22d3ee" />
+          <EvaIcon name="home-outline" width={24} height={24} fill="#22d3ee" />
           Home
         </button>
         <button className="nav-item" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'saved' }))}>
-          <Icon name="bookmark-outline" width={24} height={24} fill="#22d3ee" />
+          <EvaIcon name="bookmark-outline" width={24} height={24} fill="#22d3ee" />
           Saved
         </button>
         <button className="nav-item" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'profile' }))}>
-          <Icon name="person-outline" width={24} height={24} fill="#22d3ee" />
+          <EvaIcon name="person-outline" width={24} height={24} fill="#22d3ee" />
           Profile
         </button>
         <button className="nav-item nav-item-active" disabled>
-          <Icon name="settings-outline" width={24} height={24} fill="#22d3ee" />
+          <EvaIcon name="settings-outline" width={24} height={24} fill="#22d3ee" />
           Settings
         </button>
       </nav>

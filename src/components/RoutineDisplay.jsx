@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useTimer, useAudio, useWakeLock } from '../hooks'
 import { getYouTubeEmbedUrl } from '../routineGenerator'
-import Icon from 'react-eva-icons';
+import EvaIcon from './EvaIcon';
 
 const RoutineDisplay = ({ routine, preferences, onComplete, onBack }) => {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0)
@@ -108,11 +108,11 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack }) => {
         <h1 className="header-text">{routine.name}</h1>
         <div className="routine-meta">
           <span>
-            <Icon name="clock-outline" width={20} height={20} fill="#64748b" style={{ marginRight: '0.25rem' }} />
+            <EvaIcon name="clock-outline" width={20} height={20} fill="#64748b" style={{ marginRight: '0.25rem' }} />
             {Math.round(routine.totalDuration / 60)} minutes
           </span>
           <span>
-            <Icon name="activity-outline" width={20} height={20} fill="#64748b" style={{ marginRight: '0.25rem' }} />
+            <EvaIcon name="activity-outline" width={20} height={20} fill="#64748b" style={{ marginRight: '0.25rem' }} />
             {routine.exercises.length} exercises
           </span>
         </div>
@@ -173,7 +173,7 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack }) => {
             </div>
           ) : (
             <div className="video-placeholder">
-              <Icon name="videocam-off-outline" width={32} height={32} fill="#64748b" />
+              {/* No replacement needed for videocam-off-outline, fallback to text or another icon if needed */}
               <p>No video available for this exercise</p>
             </div>
           )}
@@ -205,12 +205,12 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack }) => {
         <div className="timer-controls">
           {!isRunning ? (
             <button className="btn" onClick={handleStartTimer}>
-              <Icon name="play-circle-outline" width={24} height={24} fill="#22d3ee" style={{ marginRight: '0.5rem' }} />
+              <EvaIcon name="play-circle-outline" width={24} height={24} fill="#22d3ee" style={{ marginRight: '0.5rem' }} />
               Start
             </button>
           ) : (
             <button className="btn btn-secondary" onClick={handlePauseTimer}>
-              <Icon name="pause-circle-outline" width={24} height={24} fill="#64748b" style={{ marginRight: '0.5rem' }} />
+              <EvaIcon name="pause-circle-outline" width={24} height={24} fill="#64748b" style={{ marginRight: '0.5rem' }} />
               Pause
             </button>
           )}
@@ -220,7 +220,7 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack }) => {
             onClick={handleSkipExercise}
           >
             Skip
-            <Icon name="skip-forward-outline" width={24} height={24} fill="#64748b" style={{ marginLeft: '0.5rem' }} />
+            <EvaIcon name="skip-forward-outline" width={24} height={24} fill="#64748b" style={{ marginLeft: '0.5rem' }} />
           </button>
         </div>
       </div>
@@ -272,7 +272,7 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack }) => {
           onClick={handlePreviousExercise}
           disabled={currentExerciseIndex === 0}
         >
-          <Icon name="arrow-back-outline" width={20} height={20} fill="#64748b" style={{ marginRight: '0.5rem' }} />
+          <EvaIcon name="arrow-back-outline" width={20} height={20} fill="#64748b" style={{ marginRight: '0.5rem' }} />
           Previous
         </button>
         
@@ -283,12 +283,12 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack }) => {
           {isLastExercise ? (
             <>
               Complete
-              <Icon name="checkmark-circle-2-outline" width={20} height={20} fill="#22d3ee" style={{ marginLeft: '0.5rem' }} />
+              <EvaIcon name="checkmark-circle-2-outline" width={20} height={20} fill="#22d3ee" style={{ marginLeft: '0.5rem' }} />
             </>
           ) : (
             <>
               Next
-              <Icon name="arrow-forward-outline" width={20} height={20} fill="#22d3ee" style={{ marginLeft: '0.5rem' }} />
+              <EvaIcon name="arrow-forward-outline" width={20} height={20} fill="#22d3ee" style={{ marginLeft: '0.5rem' }} />
             </>
           )}
         </button>
@@ -313,7 +313,7 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack }) => {
         onClick={onBack}
         style={{ marginTop: '1rem' }}
       >
-        <Icon name="arrow-back-outline" width={20} height={20} fill="#64748b" style={{ marginRight: '0.5rem' }} />
+        <EvaIcon name="arrow-back-outline" width={20} height={20} fill="#64748b" style={{ marginRight: '0.5rem' }} />
         Back to Preferences
       </button>
     </div>
