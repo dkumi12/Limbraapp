@@ -54,18 +54,6 @@ function App() {
     return () => window.removeEventListener('navigate', handler)
   }, [])
 
-  useEffect(() => {
-    // Show welcome popup only once per session
-    const hasSeenWelcome = localStorage.getItem('has_seen_welcome')
-    if (!hasSeenWelcome) {
-      setShowWelcome(true)
-      localStorage.setItem('has_seen_welcome', 'true')
-    }
-    // Load profile name if available
-    const savedName = localStorage.getItem('profile_display_name') || ''
-    setProfileName(savedName)
-  }, [])
-
   console.log('App rendering, currentScreen:', currentScreen);
 
   const handleGenerateRoutine = async (userPreferences) => {
@@ -122,32 +110,6 @@ function App() {
 
   return (
     <div className="app">
-      {/* Welcome Modal */}
-      <Modal open={showWelcome} onClose={handleCloseWelcome}>
-        <Box className="onboarding-modal" sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          bgcolor: 'background.paper',
-          borderRadius: 3,
-          boxShadow: 24,
-          p: 4,
-          minWidth: 320,
-          maxWidth: 400,
-          textAlign: 'center',
-          background: 'linear-gradient(135deg, #e0f7fa 0%, #f3e8ff 100%)',
-        }}>
-          <h2 style={{ fontWeight: 700, marginBottom: '1rem', color: '#23293a' }}>Start your stretch habit with Limbra.</h2>
-          <div style={{ color: '#4b5563', fontSize: '1.1rem', marginBottom: '2rem' }}>
-            In just 5 minutes a day, improve your flexibility, reduce tension, and move more freely — anytime, anywhere.
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
-            <Button variant="outlined" onClick={handleCloseWelcome} sx={{ borderRadius: 2 }}>Skip</Button>
-            <Button variant="contained" onClick={handleCloseWelcome} sx={{ borderRadius: 2, background: 'linear-gradient(90deg, #22c55e 60%, #3f51b5 100%)' }}>Start</Button>
-          </div>
-        </Box>
-      </Modal>
       <div className="main-container">
         {showAPIConfig && (
           <Settings
