@@ -12,7 +12,6 @@ import Modal from '@mui/material/Modal'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import EvaIcon from './components/EvaIcon'
-import QuickStartGrid from './components/QuickStartGrid'
 import MessageCarousel from './components/MessageCarousel'
 
 function App() {
