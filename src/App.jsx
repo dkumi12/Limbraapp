@@ -12,6 +12,8 @@ import Modal from '@mui/material/Modal'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import EvaIcon from './components/EvaIcon'
+import QuickStartGrid from './components/QuickStartGrid'
+import MessageCarousel from './components/MessageCarousel'
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState('preferences')
@@ -21,8 +23,14 @@ function App() {
   const [showAPIConfig, setShowAPIConfig] = useState(false)
   const { stats, updateStats } = useRoutineStats()
   const goBack = () => setCurrentScreen('preferences')
-  const [showWelcome, setShowWelcome] = useState(false)
-  const [profileName, setProfileName] = useState('')
+
+  // Check if this is first time or if API keys are needed
+  useEffect(() => {
+    const hasSeenAPIConfig = localStorage.getItem('has_seen_api_config')
+    if (!hasSeenAPIConfig) {
+      setShowAPIConfig(true)
+    }
+  }, [])
 
   useEffect(() => {
     const handler = (e) => {
@@ -103,10 +111,6 @@ function App() {
     setShowAPIConfig(false)
   }
 
-  const handleCloseWelcome = () => {
-    setShowWelcome(false)
-  }
-
   if (error) {
     return (
       <div style={{ padding: '20px', color: 'red' }}>
@@ -146,81 +150,84 @@ function App() {
         </Box>
       </Modal>
       <div className="main-container">
-        {/* Show profile name in header if available and not showing welcome */}
-        {(!showWelcome && profileName) && (
-          <div style={{ textAlign: 'center', margin: '1.5rem 0', fontWeight: 600, color: '#22c55e', fontSize: '1.25rem' }}>
-            {profileName}
-          </div>
+        {showAPIConfig && (
+          <Settings
+            onClose={goBack}
+          />
         )}
-        {(showAPIConfig || currentScreen === 'settings') ? (
-          <Settings onClose={goBack} />
-        ) : (
+        
+        {!showAPIConfig && currentScreen === 'preferences' && (
           <>
-            {!showAPIConfig && currentScreen === 'preferences' && (
-              <>
-                {/* Limbra Home Header - matches screenshot */}
-                <div className="header" style={{ marginBottom: '2.5rem', marginTop: '2.5rem', textAlign: 'center' }}>
-                  <div className="header-text" style={{ fontWeight: 800, fontSize: '2.8rem', letterSpacing: '0.01em', color: '#4be2d3', marginBottom: '0.5rem' }}>LIMBRA</div>
-                  <div style={{ textTransform: 'uppercase', fontWeight: 400, letterSpacing: '0.08em', fontSize: '1.05rem', color: '#b0b8c9', marginBottom: '0.5rem' }}>
-                    BY EVERBOOMING HEALTH AND WELLNESS ®
-                  </div>
-                </div>
-                <PreferencesForm 
-                  onGenerate={handleGenerateRoutine}
-                  stats={stats}
-                />
-              </>
-            )}
-            {currentScreen === 'saved' && (
-              <SavedRoutines
-                onSelectRoutine={(routine) => {
-                  setRoutine(routine)
-                  setCurrentScreen('routine')
-                }}
-                onClose={goBack}
-              />
-            )}
-            {currentScreen === 'profile' && (
-              <Profile onClose={goBack} />
-            )}
-            {currentScreen === 'routine' && routine && (
-              <RoutineDisplay
-                routine={routine}
-                preferences={preferences}
-                onComplete={handleCompleteRoutine}
-                onBack={goBack}
-              />
-            )}
-            {currentScreen === 'complete' && (
-              <div className="session-complete">
-                <button className="back-button" onClick={goBack} style={{ position: 'absolute', left: '1rem', top: '1rem', background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>←</button>
-                <div className="celebration">🎉</div>
-                <h2>Great Job!</h2>
-                <p className="subheader-text">You've completed your stretching routine</p>
-                <div className="stats-grid">
-                  <div className="stat-card">
-                    <div className="stat-value">{stats.totalSessions}</div>
-                    <div className="stat-label">Total Sessions</div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="stat-value">{Math.round(stats.totalTimeSpent / 60)}</div>
-                    <div className="stat-label">Minutes Stretched</div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="stat-value">{stats.streakDays}</div>
-                    <div className="stat-label">Day Streak</div>
-                  </div>
-                </div>
-                <button 
-                  className="btn"
-                  onClick={handleStartNew}
-                >
-                  Start New Routine
-                </button>
+            <header className="header" style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+              <div style={{ fontWeight: 'bold', fontSize: '2.2rem', letterSpacing: '0.02em' }}>Limbra</div>
+              <div style={{ fontSize: '0.75rem', color: '#b0b8c9', marginTop: '0.15rem', fontWeight: 400, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                BY EVERBOOMING HEALTH AND WELLNESS
               </div>
-            )}
+            </header>
+            
+            <PreferencesForm 
+              onGenerate={handleGenerateRoutine}
+              stats={stats}
+            />
           </>
         )}
+
+        {!showAPIConfig && currentScreen === 'saved' && (
+          <SavedRoutines
+            onSelectRoutine={(routine) => {
+              setRoutine(routine)
+              setCurrentScreen('routine')
+            }}
+            onClose={goBack}
+          />
+        )}
+
+        {!showAPIConfig && currentScreen === 'profile' && (
+          <Profile
+            onClose={goBack}
+          />
+        )}
+
+        {currentScreen === 'routine' && routine && (
+          <RoutineDisplay
+            routine={routine}
+            preferences={preferences}
+            onComplete={handleCompleteRoutine}
+            onBack={goBack}
+          />
+        )}
+
+        {currentScreen === 'complete' && (
+          <div className="session-complete">
+            <button className="back-button" onClick={goBack} style={{ position: 'absolute', left: '1rem', top: '1rem', background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>←</button>
+            <div className="celebration">🎉</div>
+            <h2>Great Job!</h2>
+            <p className="subheader-text">You've completed your stretching routine</p>
+            
+            <div className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-value">{stats.totalSessions}</div>
+                <div className="stat-label">Total Sessions</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-value">{Math.round(stats.totalTimeSpent / 60)}</div>
+                <div className="stat-label">Minutes Stretched</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-value">{stats.streakDays}</div>
+                <div className="stat-label">Day Streak</div>
+              </div>
+            </div>
+
+            <button 
+              className="btn"
+              onClick={handleStartNew}
+            >
+              Start New Routine
+            </button>
+          </div>
+        )}
+
         {/* Navigation Bar - always visible */}
         <nav className="nav-bar">
           <button className={`nav-item${currentScreen === 'preferences' ? ' nav-item-active' : ''}`} onClick={() => setCurrentScreen('preferences')}>
