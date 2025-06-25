@@ -1,7 +1,11 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { GOALS, BODY_PARTS, DIFFICULTY_LEVELS, validateRoutinePreferences } from '../routineGenerator'
 import { EQUIPMENT_TYPES, EQUIPMENT_INFO } from '../services/api'
 import EvaIcon from './EvaIcon';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import CloseIcon from '@mui/icons-material/Close';
+import StretchFigureLottie from './StretchFigureLottie';
 
 const PreferencesForm = ({ onGenerate, stats }) => {
   const [duration, setDuration] = useState(10)
@@ -18,61 +22,63 @@ const PreferencesForm = ({ onGenerate, stats }) => {
   })
   const [problems, setProblems] = useState([])
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isSaved, setIsSaved] = useState(false)
+  const [showStatsSummary, setShowStatsSummary] = useState(true);
 
   const quickStartOptions = [
     {
       id: 'morning',
-      icon: 'wb_sunny',
+      icon: '🌅',
       iconColor: '#ff9800',
-      title: 'Morning Routine',
-      subtitle: '10 min energizing',
+      title: 'Wake & Stretch',
+      subtitle: '5 min energizing',
       preset: () => {
         setGoals([GOALS.MORNING_WAKE_UP])
         setBodyParts([BODY_PARTS.FULL_BODY])
         setEnergyLevel('medium')
-        setDuration(10)
+        setDuration(5)
         setEquipment(['none'])
       }
     },
     {
       id: 'desk',
-      icon: 'desktop_windows',
+      icon: '💻',
       iconColor: '#2196f3',
-      title: 'Desk Break',
-      subtitle: '5 min neck & shoulders',
+      title: 'Desk Reset',
+      subtitle: '10 min neck & shoulders',
       preset: () => {
         setGoals([GOALS.DESK_BREAK])
         setBodyParts([BODY_PARTS.NECK, BODY_PARTS.SHOULDERS, BODY_PARTS.UPPER_BACK])
         setEnergyLevel('low')
-        setDuration(5)
+        setDuration(10)
         setEquipment(['wall', 'chair'])
       }
     },
     {
       id: 'workout',
-      icon: 'fitness_center',
+      icon: '🤸',
       iconColor: '#9c27b0',
-      title: 'Post-Workout',
-      subtitle: '15 min recovery',
+      title: 'Cool Down Stretch',
+      subtitle: '5 min recovery',
       preset: () => {
         setGoals([GOALS.POST_WORKOUT])
         setBodyParts([BODY_PARTS.LEGS, BODY_PARTS.HIPS])
         setEnergyLevel('low')
-        setDuration(15)
+        setDuration(5)
         setEquipment(['foam_roller', 'mat'])
       }
     },
     {
       id: 'bedtime',
-      icon: 'bedtime',
+      icon: '🌙',
       iconColor: '#3f51b5',
-      title: 'Bedtime',
-      subtitle: '10 min relaxing',
+      title: 'Wind Down Flow',
+      subtitle: '5 min relaxing',
       preset: () => {
         setGoals([GOALS.BEDTIME_RELAX])
         setBodyParts([BODY_PARTS.FULL_BODY])
         setEnergyLevel('low')
-        setDuration(10)
+        setDuration(5)
         setEquipment(['mat'])
       }
     }
@@ -208,40 +214,78 @@ const PreferencesForm = ({ onGenerate, stats }) => {
     setIsGenerating(true)
     try {
       await onGenerate(preferences)
+      setIsSaved(true)
     } catch (error) {
       console.error('Error generating routine:', error)
-      alert('Failed to generate routine. Please try again.')
+      alert('Failed to generate routine with AI. Please check your OpenRouter API key and network connection. Fallback routines are no longer available.');
     } finally {
       setIsGenerating(false)
     }
+  }
+
+  const handleReset = () => {
+    setGoals([])
+    setBodyParts([])
+    setEquipment(['none'])
+    setIsSaved(false)
   }
 
   const durationOptions = [5, 10, 15, 20, 30]
 
   return (
     <form onSubmit={handleSubmit} className="preferences-form">
-      {/* Stats Summary */}
-      {stats.totalSessions > 0 && (
-        <div className="stats-summary">
-          <p>Welcome back! You've completed {stats.totalSessions} sessions 🎉</p>
+      {/* Stats Summary with close button */}
+      {stats.totalSessions > 0 && showStatsSummary && (
+        <div className="stats-summary" style={{ position: 'relative' }}>
+          <span>Welcome back! You've completed {stats.totalSessions} sessions 🎉</span>
+          <button
+            type="button"
+            onClick={() => setShowStatsSummary(false)}
+            style={{
+              position: 'absolute',
+              top: 8,
+              right: 12,
+              background: 'none',
+              border: 'none',
+              color: '#22c55e',
+              fontSize: 20,
+              cursor: 'pointer',
+              padding: 0,
+              lineHeight: 1
+            }}
+            aria-label="Close welcome message"
+          >
+            <CloseIcon style={{ fontSize: 22 }} />
+          </button>
         </div>
       )}
 
+      {/* Hero Section */}
+      <div className="hero-card" style={{ background: '#232b39', borderRadius: '1.25rem', boxShadow: '0 4px 24px 0 #00000022', padding: '2rem 1.5rem', marginBottom: '2rem', textAlign: 'center' }}>
+        <h1 className="hero-headline">Stretch smarter. Feel stronger.</h1>
+        <div className="hero-subheadline">Daily guided stretches to unlock your body's best.</div>
+      </div>
+
       {/* Quick Start Section */}
-      <section>
-        <h2 className="section-title">Quick Start (Optional)</h2>
+      <section className="quick-start-section">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+          <h2 className="section-title" style={{ color: 'white', fontWeight: 700, marginBottom: 0 }}>Stretch in a Snap</h2>
+          <div className="stretch-anim">
+            <StretchFigureLottie style={{ width: '100%', height: '100%' }} />
+          </div>
+        </div>
         <div className="quick-start-grid">
           {quickStartOptions.map(option => (
             <div
               key={option.id}
-              className="quick-start-tag"
+              className="quick-start-card"
               onClick={option.preset}
             >
-              <EvaIcon name={quickStartEvaIcons[option.id]} fill={option.iconColor} width={24} height={24} />
-              <div>
-                <p style={{ fontWeight: 500, marginBottom: '0.125rem' }}>{option.title}</p>
-                <p style={{ fontSize: '0.75rem', color: '#64748b' }}>{option.subtitle}</p>
+              <div className="quick-start-title">
+                <span className="routine-icon">{/* SVG or animated icon here */}</span>
+                <span>{option.title}</span>
               </div>
+              <div className="quick-start-subtitle">{option.subtitle}</div>
             </div>
           ))}
         </div>
@@ -378,6 +422,15 @@ const PreferencesForm = ({ onGenerate, stats }) => {
           <span>Generate My Routine</span>
         )}
       </button>
+
+      {isSaved && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1rem', justifyContent: 'center' }}>
+          <CheckCircleIcon style={{ color: '#22c55e', fontSize: 32 }} titleAccess="Saved!" />
+          <button type="button" className="btn btn-secondary" onClick={handleReset} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <RestartAltIcon style={{ fontSize: 28 }} />
+          </button>
+        </div>
+      )}
     </form>
   )
 }
