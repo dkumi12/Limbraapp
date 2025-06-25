@@ -100,21 +100,21 @@ const SavedRoutines = ({ onSelectRoutine, onClose }) => {
         <p className="subheader-text">Your personalized stretching library</p>
       </header>
       <nav className="nav-bar">
-        <button className="nav-item" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'home' }))}>
-          <EvaIcon name="home-outline" width={24} height={24} fill="#22d3ee" />
-          Home
+        <button className={`nav-item`} onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'home' }))}>
+          <EvaIcon name="home-outline" width={24} height={24} fill="#b0b8c9" />
+          <span style={{ color: '#b0b8c9' }}>Home</span>
         </button>
-        <button className="nav-item nav-item-active" disabled>
-          <EvaIcon name="bookmark-outline" width={24} height={24} fill="#22d3ee" />
-          Saved
+        <button className={`nav-item nav-item-active`} disabled>
+          <EvaIcon name="bookmark-outline" width={24} height={24} fill="#22c55e" />
+          <span style={{ color: '#22c55e' }}>Saved</span>
         </button>
-        <button className="nav-item" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'profile' }))}>
-          <EvaIcon name="person-outline" width={24} height={24} fill="#22d3ee" />
-          Profile
+        <button className={`nav-item`} onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'profile' }))}>
+          <EvaIcon name="person-outline" width={24} height={24} fill="#b0b8c9" />
+          <span style={{ color: '#b0b8c9' }}>Profile</span>
         </button>
-        <button className="nav-item" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'settings' }))}>
-          <EvaIcon name="settings-outline" width={24} height={24} fill="#22d3ee" />
-          Settings
+        <button className={`nav-item`} onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'settings' }))}>
+          <EvaIcon name="settings-outline" width={24} height={24} fill="#b0b8c9" />
+          <span style={{ color: '#b0b8c9' }}>Settings</span>
         </button>
       </nav>
       <div className="saved-content" style={{ padding: '1.5rem', maxWidth: '800px', margin: '0 auto' }}>

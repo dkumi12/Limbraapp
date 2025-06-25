@@ -15,6 +15,7 @@ import SettingsIcon from '@mui/icons-material/Settings'
 import Modal from '@mui/material/Modal'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
+import EvaIcon from './components/EvaIcon'
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState('preferences')
@@ -227,19 +228,19 @@ function App() {
         {/* Navigation Bar - always visible */}
         <nav className="nav-bar">
           <button className={`nav-item${currentScreen === 'preferences' ? ' nav-item-active' : ''}`} onClick={() => setCurrentScreen('preferences')}>
-            <HomeIcon style={{ color: currentScreen === 'preferences' ? '#22c55e' : '#b0b8c9' }} />
+            <EvaIcon name="home-outline" width={24} height={24} fill={currentScreen === 'preferences' ? '#22c55e' : '#b0b8c9'} />
             <span style={{ color: currentScreen === 'preferences' ? '#22c55e' : '#b0b8c9' }}>Home</span>
           </button>
           <button className={`nav-item${currentScreen === 'saved' ? ' nav-item-active' : ''}`} onClick={() => setCurrentScreen('saved')}>
-            <BookmarkIcon style={{ color: currentScreen === 'saved' ? '#22c55e' : '#b0b8c9' }} />
+            <EvaIcon name="bookmark-outline" width={24} height={24} fill={currentScreen === 'saved' ? '#22c55e' : '#b0b8c9'} />
             <span style={{ color: currentScreen === 'saved' ? '#22c55e' : '#b0b8c9' }}>Saved</span>
           </button>
           <button className={`nav-item${currentScreen === 'profile' ? ' nav-item-active' : ''}`} onClick={() => setCurrentScreen('profile')}>
-            <PersonIcon style={{ color: currentScreen === 'profile' ? '#22c55e' : '#b0b8c9' }} />
+            <EvaIcon name="person-outline" width={24} height={24} fill={currentScreen === 'profile' ? '#22c55e' : '#b0b8c9'} />
             <span style={{ color: currentScreen === 'profile' ? '#22c55e' : '#b0b8c9' }}>Profile</span>
           </button>
           <button className={`nav-item${showAPIConfig || currentScreen === 'settings' ? ' nav-item-active' : ''}`} onClick={() => { setShowAPIConfig(true); setCurrentScreen('settings'); }}>
-            <SettingsIcon style={{ color: (showAPIConfig || currentScreen === 'settings') ? '#22c55e' : '#b0b8c9' }} />
+            <EvaIcon name="settings-outline" width={24} height={24} fill={(showAPIConfig || currentScreen === 'settings') ? '#22c55e' : '#b0b8c9'} />
             <span style={{ color: (showAPIConfig || currentScreen === 'settings') ? '#22c55e' : '#b0b8c9' }}>Settings</span>
           </button>
         </nav>

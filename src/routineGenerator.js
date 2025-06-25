@@ -168,87 +168,9 @@ export class RoutineGenerator {
         };
       }
     } catch (error) {
-      console.error('AI generation failed, using fallback:', error);
+      console.error('AI generation failed:', error);
+      throw error; // Do not fallback, propagate error
     }
-    
-    // Fallback to manual generation
-    return this.generateFallbackRoutine(updatedPreferences);
-  }
-  
-  generateFallbackRoutine(preferences) {
-    const { duration, goals, bodyParts, equipment } = preferences;
-    const targetDuration = duration || 300;
-    
-    // Filter exercises based on goals, body parts, and equipment
-    let matchingExercises = Object.values(this.fallbackExercises).filter(exercise => {
-      const goalMatch = goals.some(goal => exercise.goals.includes(goal));
-      const bodyPartMatch = bodyParts.some(part => 
-        exercise.bodyParts.includes(part) || bodyParts.includes('full_body')
-      );
-      const equipmentMatch = equipment.some(eq => 
-        exercise.equipment.includes(eq) || exercise.equipment.includes('none')
-      );
-      return (goalMatch || bodyPartMatch) && equipmentMatch;
-    });
-    
-    // If no matches, use exercises that match equipment
-    if (matchingExercises.length === 0) {
-      matchingExercises = Object.values(this.fallbackExercises).filter(exercise =>
-        equipment.some(eq => exercise.equipment.includes(eq) || exercise.equipment.includes('none'))
-      );
-    }
-    
-    // Select exercises to fit duration
-    const selectedExercises = [];
-    let currentDuration = 0;
-    const usedExercises = new Set();
-    
-    while (currentDuration < targetDuration && matchingExercises.length > 0) {
-      const availableExercises = matchingExercises.filter(ex => !usedExercises.has(ex.name));
-      
-      if (availableExercises.length === 0) {
-        // Reset if we've used all exercises
-        usedExercises.clear();
-        continue;
-      }
-      
-      const randomIndex = Math.floor(Math.random() * availableExercises.length);
-      const exercise = availableExercises[randomIndex];
-      
-      if (currentDuration + exercise.duration <= targetDuration + 30) {
-        selectedExercises.push({
-          ...exercise,
-          videoSearchQuery: `${exercise.name} stretching exercise tutorial`
-        });
-        currentDuration += exercise.duration;
-        usedExercises.add(exercise.name);
-      } else {
-        // Try to find a shorter exercise
-        const shorterExercise = availableExercises.find(ex => 
-          currentDuration + ex.duration <= targetDuration && !usedExercises.has(ex.name)
-        );
-        if (shorterExercise) {
-          selectedExercises.push({
-            ...shorterExercise,
-            videoSearchQuery: `${shorterExercise.name} stretching exercise tutorial`
-          });
-          currentDuration += shorterExercise.duration;
-          usedExercises.add(shorterExercise.name);
-        } else {
-          break;
-        }
-      }
-    }
-    
-    return {
-      name: this.generateRoutineName(goals),
-      exercises: selectedExercises,
-      totalDuration: currentDuration,
-      difficulty: preferences.difficulty || 'beginner',
-      benefits: this.extractBenefits(selectedExercises),
-      tips: this.generateTips(preferences),
-      cooldownAdvice: 'Take deep breaths and move gently back to normal activity.'
-    };
   }
   
   generateRoutineName(goals) {

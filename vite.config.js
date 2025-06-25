@@ -4,6 +4,12 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@mui/icons-material': '@mui/icons-material/esm',
+      '@mui/material': '@mui/material/esm'
+    }
+  },
   plugins: [
     react(),
     VitePWA({
@@ -38,5 +44,35 @@ export default defineConfig({
         enabled: true
       }
     })
-  ]
+  ],
+  build: {
+    outDir: 'dist',
+    rollupOptions: {
+      external: [
+        '@mui/icons-material',
+        '@mui/icons-material/Home',
+        '@mui/material'
+      ],
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
+        }
+      }
+    }
+  },
+  optimizeDeps: {
+    include: [
+      '@mui/icons-material',
+      '@mui/material'
+    ],
+    exclude: [
+      '@mui/icons-material/Home'
+    ]
+  },
+  server: {
+    port: 3000,
+    open: true
+  }
 })

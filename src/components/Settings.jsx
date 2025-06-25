@@ -162,96 +162,63 @@ const Settings = ({ onClose }) => {
     <div className="settings-page">
       <header className="header" style={{ display: 'flex', alignItems: 'center', gap: '1rem', position: 'relative' }}>
         <button 
-          className="back-button"
+          className="settings-back-btn"
           onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'home' }))}
-          style={{ 
-            background: 'none',
-            border: 'none',
-            fontSize: '2.25rem',
-            color: '#22d3ee', // bright cyan for visibility
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            marginRight: '0.5rem',
-            lineHeight: 1
-          }}
           aria-label="Back"
         >
-          ←
+          <EvaIcon name="arrow-back-outline" width={28} height={28} fill="#22c55e" />
         </button>
         <div>
-          <h1 className="header-text" style={{ display: 'inline', verticalAlign: 'middle' }}>Settings</h1>
+          <h1 className="header-text">Settings</h1>
           <p className="subheader-text">Configure your app preferences</p>
         </div>
       </header>
 
       <div className="settings-content" style={{ padding: '1.5rem', maxWidth: '600px', margin: '0 auto' }}>
         {/* API Configuration Section */}
-        <section className="settings-section">
-          <h2 style={{ marginBottom: '1rem' }}>API Configuration</h2>
-          
+        <div className="settings-card">
+          <h2 className="settings-section-title">API Configuration</h2>
           <div className="form-group">
-            <label className="form-label">
-              OpenRouter API Key
-            </label>
+            <label className="form-label">OpenRouter API Key</label>
             <input
               type="password"
-              className="form-input"
+              className="settings-input"
               value={openRouterKey}
               onChange={(e) => setOpenRouterKey(e.target.value)}
               placeholder="sk-or-..."
             />
-            <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
-              Get your key from{' '}
-              <a 
-                href="https://openrouter.ai/keys" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                style={{ color: 'var(--primary-green)' }}
-              >
-                openrouter.ai/keys
-              </a>
+            <p className="settings-hint">
+              Get your key from <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer">openrouter.ai/keys</a>
             </p>
           </div>
-
           <div className="form-group">
-            <label className="form-label">
-              YouTube API Key
-            </label>
+            <label className="form-label">YouTube API Key</label>
             <input
               type="password"
-              className="form-input"
+              className="settings-input"
               value={youtubeKey}
               onChange={(e) => setYoutubeKey(e.target.value)}
               placeholder="AIza..."
             />
-            <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
-              Get your key from{' '}
-              <a 
-                href="https://console.cloud.google.com/apis/credentials" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                style={{ color: 'var(--primary-green)' }}
-              >
-                Google Cloud Console
-              </a>
+            <p className="settings-hint">
+              Get your key from <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer">Google Cloud Console</a>
             </p>
           </div>
+          </div>
 
-          {/* Model Selection */}
-          <div className="form-group">
-            <label className="form-label">
-              AI Model
-            </label>
-            {loadingModels ? (
-              <p style={{ color: '#64748b' }}>Loading available models...</p>
-            ) : (
+        {/* AI Model Section */}
+        <div className="settings-card">
+          <h2 className="settings-section-title">AI Model</h2>
               <select
-                className="form-input"
+            className="settings-input"
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value)}
                 disabled={!openRouterKey}
               >
-                {availableModels.length > 0 ? (
+            {loadingModels ? (
+              <option>Loading available models...</option>
+            ) : (
+              availableModels.length > 0 ? (
                   availableModels.map(model => (
                     <option key={model.id} value={model.id}>
                       {model.name || model.id} {model.pricing && `($${model.pricing.prompt}/1k tokens)`}
@@ -259,36 +226,26 @@ const Settings = ({ onClose }) => {
                   ))
                 ) : (
                   <option value="">Enter API key to load models</option>
-                )}
-              </select>
+              )
             )}
-          </div>
-
+          </select>
           <button
-            className="btn btn-secondary"
+            className="settings-btn settings-btn-secondary"
             onClick={() => setShowInstructions(!showInstructions)}
-            style={{ marginBottom: '1rem', width: '100%' }}
+            style={{ marginTop: '1rem', width: '100%' }}
           >
             {showInstructions ? 'Hide' : 'Show'} Setup Instructions
           </button>
-
           {showInstructions && (
-            <div style={{ 
-              background: '#f8f9fa', 
-              padding: '1rem', 
-              borderRadius: '8px',
-              marginBottom: '1rem',
-              fontSize: '0.875rem'
-            }}>
-              <h3 style={{ marginBottom: '0.5rem' }}>OpenRouter Setup:</h3>
+            <div className="settings-instructions">
+              <h3>OpenRouter Setup:</h3>
               <ol>
                 <li>Go to openrouter.ai and sign up</li>
                 <li>Add credits to your account ($5 is plenty)</li>
                 <li>Generate an API key</li>
                 <li>Paste it above</li>
               </ol>
-              
-              <h3 style={{ marginTop: '1rem', marginBottom: '0.5rem' }}>YouTube API Setup:</h3>
+              <h3>YouTube API Setup:</h3>
               <ol>
                 <li>Go to Google Cloud Console</li>
                 <li>Create a new project</li>
@@ -299,90 +256,49 @@ const Settings = ({ onClose }) => {
               </ol>
             </div>
           )}
-        </section>
+        </div>
 
         {/* Data Management Section */}
-        <section className="settings-section" style={{ marginTop: '2rem' }}>
-          <h2 style={{ marginBottom: '1rem' }}>Data Management</h2>
-          
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            <button 
-              className="btn btn-secondary"
-              onClick={handleExportData}
-              style={{ flex: 1, minWidth: '150px' }}
-            >
-              Export Data
-            </button>
-            
-            <label 
-              className="btn btn-secondary"
-              style={{ flex: 1, minWidth: '150px', textAlign: 'center', cursor: 'pointer' }}
-            >
+        <div className="settings-card">
+          <h2 className="settings-section-title">Data Management</h2>
+          <div className="settings-data-btns">
+            <button className="settings-btn settings-btn-secondary" onClick={handleExportData}>Export Data</button>
+            <label className="settings-btn settings-btn-secondary" style={{ textAlign: 'center', cursor: 'pointer' }}>
               Import Data
-              <input
-                type="file"
-                accept=".json"
-                onChange={handleImportData}
-                style={{ display: 'none' }}
-              />
+              <input type="file" accept=".json" onChange={handleImportData} style={{ display: 'none' }} />
             </label>
-            
-            <button 
-              className="btn"
-              onClick={handleClearData}
-              style={{ 
-                flex: 1, 
-                minWidth: '150px',
-                background: '#ef4444',
-                color: 'white'
-              }}
-            >
-              Clear All Data
-            </button>
+            <button className="settings-btn settings-btn-danger" onClick={handleClearData}>Clear All Data</button>
           </div>
-        </section>
+        </div>
 
         {/* Save Status */}
         {saveStatus && (
-          <div style={{ 
-            marginTop: '1rem',
-            padding: '0.75rem',
-            background: saveStatus.includes('Error') ? '#fee' : '#e6f4ea',
-            color: saveStatus.includes('Error') ? '#d33' : '#188038',
-            borderRadius: '8px',
-            textAlign: 'center'
-          }}>
-            {saveStatus}
-          </div>
+          <div className="settings-save-status">{saveStatus}</div>
         )}
 
         {/* Save Button */}
-        <button 
-          className="btn"
-          onClick={handleSave}
-          style={{ marginTop: '2rem', width: '100%' }}
-        >
+        <button className="settings-btn settings-btn-primary" onClick={handleSave} style={{ marginTop: '2rem', width: '100%' }}>
           Save Settings
         </button>
       </div>
 
       {/* Navigation bar always visible at the bottom */}
       <nav className="nav-bar">
-        <button className="nav-item" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'home' }))}>
-          <EvaIcon name="home-outline" width={24} height={24} fill="#22d3ee" />
-          Home
+        <button className={`nav-item`} onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'home' }))}>
+          <EvaIcon name="home-outline" width={24} height={24} fill="#b0b8c9" />
+          <span style={{ color: '#b0b8c9' }}>Home</span>
         </button>
-        <button className="nav-item" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'saved' }))}>
-          <EvaIcon name="bookmark-outline" width={24} height={24} fill="#22d3ee" />
-          Saved
+        <button className={`nav-item`} onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'saved' }))}>
+          <EvaIcon name="bookmark-outline" width={24} height={24} fill="#b0b8c9" />
+          <span style={{ color: '#b0b8c9' }}>Saved</span>
         </button>
-        <button className="nav-item" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'profile' }))}>
-          <EvaIcon name="person-outline" width={24} height={24} fill="#22d3ee" />
-          Profile
+        <button className={`nav-item`} onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'profile' }))}>
+          <EvaIcon name="person-outline" width={24} height={24} fill="#b0b8c9" />
+          <span style={{ color: '#b0b8c9' }}>Profile</span>
         </button>
-        <button className="nav-item nav-item-active" disabled>
-          <EvaIcon name="settings-outline" width={24} height={24} fill="#22d3ee" />
-          Settings
+        <button className={`nav-item nav-item-active`} disabled>
+          <EvaIcon name="settings-outline" width={24} height={24} fill="#22c55e" />
+          <span style={{ color: '#22c55e' }}>Settings</span>
         </button>
       </nav>
     </div>
