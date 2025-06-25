@@ -2,9 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { GOALS, BODY_PARTS, DIFFICULTY_LEVELS, validateRoutinePreferences } from '../routineGenerator'
 import { EQUIPMENT_TYPES, EQUIPMENT_INFO } from '../services/api'
 import EvaIcon from './EvaIcon';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
-import CloseIcon from '@mui/icons-material/Close';
 import StretchFigureLottie from './StretchFigureLottie';
 
 const PreferencesForm = ({ onGenerate, stats }) => {
@@ -255,7 +252,7 @@ const PreferencesForm = ({ onGenerate, stats }) => {
             }}
             aria-label="Close welcome message"
           >
-            <CloseIcon style={{ fontSize: 22 }} />
+            <EvaIcon name="close-outline" style={{ fontSize: 22 }} />
           </button>
         </div>
       )}
@@ -425,9 +422,9 @@ const PreferencesForm = ({ onGenerate, stats }) => {
 
       {isSaved && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1rem', justifyContent: 'center' }}>
-          <CheckCircleIcon style={{ color: '#22c55e', fontSize: 32 }} titleAccess="Saved!" />
+          <EvaIcon name="checkmark-circle-2-outline" style={{ color: '#22c55e', fontSize: 32 }} titleAccess="Saved!" />
           <button type="button" className="btn btn-secondary" onClick={handleReset} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <RestartAltIcon style={{ fontSize: 28 }} />
+            <EvaIcon name="refresh-outline" style={{ fontSize: 28 }} />
           </button>
         </div>
       )}
