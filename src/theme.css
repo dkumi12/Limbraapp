@@ -282,20 +282,22 @@ h2 {
 
 /* Navigation Bar Consistent Styling */
 .nav-bar {
-  background-color: #23293a;
-  border-top: 1px solid #334155;
   position: fixed;
-  bottom: 0;
   left: 0;
   right: 0;
+  bottom: 0;
+  width: 100vw;
+  max-width: 448px;
+  margin: 0 auto;
+  background: var(--bg-white);
+  box-shadow: 0 -2px 12px rgba(20,24,31,0.08);
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 0.75rem 0 0.5rem 0;
-  max-width: 448px;
-  margin: 0 auto;
   z-index: 100;
-  margin-top: 1.5rem;
+  padding: 0.5rem 0 0.25rem 0;
+  border-top-left-radius: var(--radius-md);
+  border-top-right-radius: var(--radius-md);
 }
 
 .nav-item {
@@ -849,7 +851,7 @@ section {
 
 /* Ensure proper spacing at bottom for nav bar */
 .main-container {
-  padding-bottom: 5rem; /* Space for fixed nav bar */
+  padding-bottom: 5.5rem !important;
 }
 
 /* Exercise Instructions Toggle */
