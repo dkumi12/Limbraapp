@@ -6,6 +6,16 @@ const Profile = ({ onClose }) => {
   const [profilePic, setProfilePic] = useState(null);
   const [stats, setStats] = useState({ totalSessions: 0, totalTimeSpent: 0, streakDays: 0 });
   const [saveStatus, setSaveStatus] = useState('');
+  const [showSaveConfirmation, setShowSaveConfirmation] = useState(false);
+
+  useEffect(() => {
+    if (showSaveConfirmation) {
+      const timer = setTimeout(() => {
+        setShowSaveConfirmation(false);
+      }, 2000); // Hide after 2 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [showSaveConfirmation]);
 
   useEffect(() => {
     const savedName = localStorage.getItem('profile_display_name') || '';
@@ -96,7 +106,20 @@ const Profile = ({ onClose }) => {
             placeholder="Display Name"
             style={{ fontSize: '1.2rem', textAlign: 'center', marginBottom: '0.5rem' }}
           />
-          <button className="btn" onClick={handleSave} style={{ marginBottom: '1rem' }}>Save Profile</button>
+          <button 
+            className="btn" 
+            onClick={() => {
+              handleSave();
+              setShowSaveConfirmation(true);
+            }}
+            style={{ marginBottom: '1rem' }}
+          >
+            {showSaveConfirmation ? (
+              <EvaIcon name="checkmark-circle-2-outline" style={{ fontSize: 22, color: 'white' }} />
+            ) : (
+              <span>Save Profile</span>
+            )}
+          </button>
           {saveStatus && <div style={{ color: 'green', marginBottom: '1rem' }}>{saveStatus}</div>}
         </div>
         <div className="stats-grid" style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', marginBottom: '2rem' }}>

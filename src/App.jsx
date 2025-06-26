@@ -20,6 +20,7 @@ function App() {
   const [preferences, setPreferences] = useState(null)
   const [error, setError] = useState(null)
   const [showAPIConfig, setShowAPIConfig] = useState(false)
+  const [showCompletionNotification, setShowCompletionNotification] = useState(false)
   const { stats, updateStats } = useRoutineStats()
   const goBack = () => setCurrentScreen('preferences')
 
@@ -39,7 +40,6 @@ function App() {
       }
       if (e.detail === 'settings') {
         setShowAPIConfig(true)
-        setCurrentScreen('settings')
       }
       if (e.detail === 'saved') {
         setShowAPIConfig(false)
@@ -57,6 +57,7 @@ function App() {
   console.log('App rendering, currentScreen:', currentScreen);
 
   const handleGenerateRoutine = async (userPreferences) => {
+    setError(null); // Clear any previous errors
     try {
       console.log('Generating routine with preferences:', userPreferences);
       setPreferences(userPreferences)
@@ -66,6 +67,7 @@ function App() {
     } catch (error) {
       console.error('Error generating routine:', error)
       setError(error.message)
+      setCurrentScreen('preferences'); // Go back to preferences on error
     }
   }
 
@@ -79,6 +81,7 @@ function App() {
     }
     updateStats(routineData)
     setCurrentScreen('complete')
+    setShowCompletionNotification(true)
   }
 
   const handleStartNew = () => {
@@ -120,9 +123,9 @@ function App() {
         {!showAPIConfig && currentScreen === 'preferences' && (
           <>
             <header className="header" style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-              <div style={{ fontWeight: 'bold', fontSize: '2.2rem', letterSpacing: '0.02em' }}>Limbra</div>
+              <div style={{ fontWeight: 'bold', fontSize: '2.2rem', letterSpacing: '0.02em', color: 'var(--primary-green)' }}>LIMBRA</div>
               <div style={{ fontSize: '0.75rem', color: '#b0b8c9', marginTop: '0.15rem', fontWeight: 400, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                BY EVERBOOMING HEALTH AND WELLNESS
+                BY EVERBOOMING HEALTH AND WELLNESS&reg;
               </div>
             </header>
             
@@ -155,12 +158,13 @@ function App() {
             preferences={preferences}
             onComplete={handleCompleteRoutine}
             onBack={goBack}
+            isFallback={routine.isFallback} // Pass isFallback prop
           />
         )}
 
-        {currentScreen === 'complete' && (
+        {showCompletionNotification && (
           <div className="session-complete">
-            <button className="back-button" onClick={goBack} style={{ position: 'absolute', left: '1rem', top: '1rem', background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>←</button>
+            <button className="back-button" onClick={() => { setShowCompletionNotification(false); setCurrentScreen('preferences'); }} style={{ position: 'absolute', left: '1rem', top: '1rem', background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>←</button>
             <div className="celebration">🎉</div>
             <h2>Great Job!</h2>
             <p className="subheader-text">You've completed your stretching routine</p>
@@ -191,21 +195,21 @@ function App() {
 
         {/* Navigation Bar - always visible */}
         <nav className="nav-bar">
-          <button className={`nav-item${currentScreen === 'preferences' ? ' nav-item-active' : ''}`} onClick={() => setCurrentScreen('preferences')}>
+          <button className={`nav-item${currentScreen === 'preferences' ? ' nav-item-active' : ''}`} onClick={() => { setShowAPIConfig(false); setCurrentScreen('preferences'); }}>
             <EvaIcon name="home-outline" width={24} height={24} fill={currentScreen === 'preferences' ? '#22c55e' : '#b0b8c9'} />
             <span style={{ color: currentScreen === 'preferences' ? '#22c55e' : '#b0b8c9' }}>Home</span>
           </button>
-          <button className={`nav-item${currentScreen === 'saved' ? ' nav-item-active' : ''}`} onClick={() => setCurrentScreen('saved')}>
+          <button className={`nav-item${currentScreen === 'saved' ? ' nav-item-active' : ''}`} onClick={() => { setShowAPIConfig(false); setCurrentScreen('saved'); }}>
             <EvaIcon name="bookmark-outline" width={24} height={24} fill={currentScreen === 'saved' ? '#22c55e' : '#b0b8c9'} />
             <span style={{ color: currentScreen === 'saved' ? '#22c55e' : '#b0b8c9' }}>Saved</span>
           </button>
-          <button className={`nav-item${currentScreen === 'profile' ? ' nav-item-active' : ''}`} onClick={() => setCurrentScreen('profile')}>
+          <button className={`nav-item${currentScreen === 'profile' ? ' nav-item-active' : ''}`} onClick={() => { setShowAPIConfig(false); setCurrentScreen('profile'); }}>
             <EvaIcon name="person-outline" width={24} height={24} fill={currentScreen === 'profile' ? '#22c55e' : '#b0b8c9'} />
             <span style={{ color: currentScreen === 'profile' ? '#22c55e' : '#b0b8c9' }}>Profile</span>
           </button>
-          <button className={`nav-item${showAPIConfig || currentScreen === 'settings' ? ' nav-item-active' : ''}`} onClick={() => { setShowAPIConfig(true); setCurrentScreen('settings'); }}>
-            <EvaIcon name="settings-outline" width={24} height={24} fill={(showAPIConfig || currentScreen === 'settings') ? '#22c55e' : '#b0b8c9'} />
-            <span style={{ color: (showAPIConfig || currentScreen === 'settings') ? '#22c55e' : '#b0b8c9' }}>Settings</span>
+          <button className={`nav-item${showAPIConfig ? ' nav-item-active' : ''}`} onClick={() => { setShowAPIConfig(true); }}>
+            <EvaIcon name="settings-outline" width={24} height={24} fill={showAPIConfig ? '#22c55e' : '#b0b8c9'} />
+            <span style={{ color: showAPIConfig ? '#22c55e' : '#b0b8c9' }}>Settings</span>
           </button>
         </nav>
       </div>

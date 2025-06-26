@@ -11,14 +11,14 @@ const SavedRoutines = ({ onSelectRoutine, onClose }) => {
   }, [])
 
   const loadSavedRoutines = () => {
-    const routines = JSON.parse(localStorage.getItem('saved_routines') || '[]')
+    const routines = JSON.parse(localStorage.getItem('savedRoutines') || '[]')
     setSavedRoutines(routines)
   }
 
   const deleteRoutine = (id) => {
     if (window.confirm('Are you sure you want to delete this routine?')) {
       const updatedRoutines = savedRoutines.filter(r => r.id !== id)
-      localStorage.setItem('saved_routines', JSON.stringify(updatedRoutines))
+      localStorage.setItem('savedRoutines', JSON.stringify(updatedRoutines))
       setSavedRoutines(updatedRoutines)
     }
   }
@@ -44,9 +44,9 @@ const SavedRoutines = ({ onSelectRoutine, onClose }) => {
     const sorted = [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'date':
-          return new Date(b.savedDate) - new Date(a.savedDate)
+          return new Date(b.savedAt) - new Date(a.savedAt)
         case 'duration':
-          return b.duration - a.duration
+          return b.totalDuration - a.totalDuration
         case 'name':
           return (a.name || '').localeCompare(b.name || '')
         default:
@@ -254,9 +254,9 @@ const SavedRoutines = ({ onSelectRoutine, onClose }) => {
                     <span className="material-icons" style={{ fontSize: '1rem', verticalAlign: 'middle' }}>
                       timer
                     </span>{' '}
-                    {formatDuration(routine.duration)}
+                    {formatDuration(routine.totalDuration)}
                   </span>
-                  <span>{formatDate(routine.savedDate)}</span>
+                  <span>{formatDate(routine.savedAt)}</span>
                 </div>
                 
                 {routine.exercises && (

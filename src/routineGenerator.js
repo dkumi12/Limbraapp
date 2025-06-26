@@ -134,7 +134,6 @@ const FALLBACK_EXERCISES = {
 export class RoutineGenerator {
   constructor() {
     this.fallbackExercises = FALLBACK_EXERCISES;
-    this.useAI = true; // Can be toggled for API usage
   }
   
   async generateRoutine(preferences) {
@@ -150,7 +149,8 @@ export class RoutineGenerator {
     };
     
     try {
-      if (this.useAI) {
+      const apiKey = localStorage.getItem('openrouter_api_key');
+      if (apiKey) {
         // Try AI generation first
         const aiRoutine = await generateAIRoutine(updatedPreferences);
         
@@ -164,12 +164,58 @@ export class RoutineGenerator {
           difficulty: preferences.difficulty,
           benefits: this.extractBenefits(exercisesWithVideos),
           tips: aiRoutine.warmupTips || [],
-          cooldownAdvice: aiRoutine.cooldownAdvice
+          cooldownAdvice: aiRoutine.cooldownAdvice,
+          isFallback: false // Not a fallback
         };
       }
     } catch (error) {
-      console.error('AI generation failed:', error);
-      throw error; // Do not fallback, propagate error
+      console.error('AI generation failed, falling back to local exercises:', error);
+      // Fallback to local exercises if AI generation fails
+      const selectedExercises = Object.values(this.fallbackExercises).filter(ex => 
+        preferences.bodyParts.some(part => ex.bodyParts.includes(part)) &&
+        preferences.equipment.some(eq => ex.equipment.includes(eq))
+      );
+
+      // If no specific fallback exercises match, or not enough, broaden the selection
+      if (selectedExercises.length < 3) { // Ensure at least 3 exercises
+        const allFallbackExercises = Object.values(this.fallbackExercises);
+        // Prioritize exercises matching body parts, then equipment, then general
+        const bodyPartMatches = allFallbackExercises.filter(ex => preferences.bodyParts.some(part => ex.bodyParts.includes(part)));
+        const equipmentMatches = allFallbackExercises.filter(ex => preferences.equipment.some(eq => ex.equipment.includes(eq)));
+
+        let broadenedSelection = [...new Set([...bodyPartMatches, ...equipmentMatches, ...allFallbackExercises])];
+        // Take a reasonable number of exercises, e.g., 5-7, or all if fewer
+        selectedExercises.push(...broadenedSelection.slice(0, Math.max(5, preferences.duration / 60))); // Roughly 1 exercise per minute
+        // Ensure no duplicates and shuffle for variety
+        const uniqueExercises = Array.from(new Set(selectedExercises));
+        for (let i = uniqueExercises.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [uniqueExercises[i], uniqueExercises[j]] = [uniqueExercises[j], uniqueExercises[i]];
+        }
+        selectedExercises.splice(0, selectedExercises.length, ...uniqueExercises.slice(0, Math.max(5, preferences.duration / 60)));
+      }
+
+      // Ensure at least one exercise if all else fails
+      if (selectedExercises.length === 0) {
+        selectedExercises.push(this.fallbackExercises.cat_cow); // A general, safe exercise
+      }
+
+      const routineName = this.generateRoutineName(preferences.goals);
+      const tips = this.generateTips(preferences);
+      const benefits = this.extractBenefits(selectedExercises);
+
+      const exercisesWithVideos = await loadExerciseVideos(selectedExercises);
+
+      return {
+        name: routineName,
+        exercises: exercisesWithVideos,
+        totalDuration: exercisesWithVideos.reduce((sum, ex) => sum + ex.duration, 0),
+        difficulty: preferences.difficulty,
+        benefits: benefits,
+        tips: tips,
+        cooldownAdvice: "Perform light stretches and cool down for 5-10 minutes.",
+        isFallback: true // This is a fallback routine
+      };
     }
   }
   

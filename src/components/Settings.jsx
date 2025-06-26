@@ -10,6 +10,16 @@ const Settings = ({ onClose }) => {
   const [showInstructions, setShowInstructions] = useState(false)
   const [saveStatus, setSaveStatus] = useState('')
   const [exportData, setExportData] = useState(false)
+  const [showSaveConfirmation, setShowSaveConfirmation] = useState(false);
+
+  useEffect(() => {
+    if (showSaveConfirmation) {
+      const timer = setTimeout(() => {
+        setShowSaveConfirmation(false);
+      }, 2000); // Hide after 2 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [showSaveConfirmation]);
 
   useEffect(() => {
     // Load saved keys and model from localStorage
@@ -277,30 +287,21 @@ const Settings = ({ onClose }) => {
         )}
 
         {/* Save Button */}
-        <button className="settings-btn settings-btn-primary" onClick={handleSave} style={{ marginTop: '2rem', width: '100%' }}>
-          Save Settings
+        <button 
+          className="settings-btn settings-btn-primary" 
+          onClick={() => {
+            handleSave();
+            setShowSaveConfirmation(true);
+          }}
+          style={{ marginTop: '2rem', width: '100%' }}
+        >
+          {showSaveConfirmation ? (
+            <EvaIcon name="checkmark-circle-2-outline" style={{ fontSize: 22, color: 'white' }} />
+          ) : (
+            <span>Save Settings</span>
+          )}
         </button>
       </div>
-
-      {/* Navigation bar always visible at the bottom */}
-      <nav className="nav-bar">
-        <button className={`nav-item`} onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'home' }))}>
-          <EvaIcon name="home-outline" width={24} height={24} fill="#b0b8c9" />
-          <span style={{ color: '#b0b8c9' }}>Home</span>
-        </button>
-        <button className={`nav-item`} onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'saved' }))}>
-          <EvaIcon name="bookmark-outline" width={24} height={24} fill="#b0b8c9" />
-          <span style={{ color: '#b0b8c9' }}>Saved</span>
-        </button>
-        <button className={`nav-item`} onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'profile' }))}>
-          <EvaIcon name="person-outline" width={24} height={24} fill="#b0b8c9" />
-          <span style={{ color: '#b0b8c9' }}>Profile</span>
-        </button>
-        <button className={`nav-item nav-item-active`} disabled>
-          <EvaIcon name="settings-outline" width={24} height={24} fill="#22c55e" />
-          <span style={{ color: '#22c55e' }}>Settings</span>
-        </button>
-      </nav>
     </div>
   )
 }

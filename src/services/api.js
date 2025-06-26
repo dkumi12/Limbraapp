@@ -7,6 +7,10 @@ const getYouTubeAPIKey = () => {
   return localStorage.getItem('youtube_api_key') || '';
 }
 
+const getSelectedModel = () => {
+  return localStorage.getItem('selected_model') || 'anthropic/claude-3-haiku'; // Default to claude-3-haiku if not set
+}
+
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 // YouTube API configuration
@@ -75,6 +79,8 @@ Requirements:
 
   try {
     const apiKey = getOpenRouterAPIKey();
+    const selectedModel = getSelectedModel();
+
     if (!apiKey) {
       throw new Error('OpenRouter API key not configured');
     }
@@ -88,7 +94,7 @@ Requirements:
         'X-Title': 'Stretch Easy App'
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-3-haiku',
+        model: selectedModel,
         messages: [
           {
             role: 'system',
@@ -125,9 +131,16 @@ export async function searchYouTubeVideos(query, maxResults = 5) {
     return [];
   }
   
+  // Enhance query for better relevance
+  let enhancedQuery = query;
+  if (!query.toLowerCase().includes('stretch') && !query.toLowerCase().includes('exercise')) {
+    enhancedQuery = `${query} stretch`;
+  }
+  console.log('YouTube Search Query:', enhancedQuery);
+
   const params = new URLSearchParams({
     part: 'snippet',
-    q: query,
+    q: enhancedQuery,
     type: 'video',
     maxResults: maxResults,
     videoEmbeddable: true,
@@ -158,24 +171,13 @@ export async function loadExerciseVideos(exercises) {
   
   for (const exercise of exercises) {
     try {
-      if (exercise.videoSearchQuery) {
-        const videos = await searchYouTubeVideos(exercise.videoSearchQuery, 3);
+      if (exercise.videoSearchQuery || exercise.name) {
+        const videos = await searchYouTubeVideos(exercise.videoSearchQuery || exercise.name, 3);
         
         if (videos.length > 0) {
-          // Find the best video based on title relevance
-          const bestVideo = videos.find(video => {
-            const title = video.snippet.title.toLowerCase();
-            return (
-              title.includes('stretch') || 
-              title.includes('exercise') || 
-              title.includes('how to') ||
-              title.includes('form')
-            ) && !title.includes('compilation');
-          }) || videos[0];
-          
-          exercise.videoId = bestVideo.id.videoId;
-          exercise.videoTitle = bestVideo.snippet.title;
-          exercise.channelTitle = bestVideo.snippet.channelTitle;
+          exercise.videoId = videos[0].id.videoId;
+          exercise.videoTitle = videos[0].snippet.title;
+          exercise.channelTitle = videos[0].snippet.channelTitle;
         }
       }
       exercisesWithVideos.push(exercise);

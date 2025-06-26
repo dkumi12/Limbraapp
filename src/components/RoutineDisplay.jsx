@@ -3,13 +3,34 @@ import { useTimer, useAudio, useWakeLock } from '../hooks'
 import { getYouTubeEmbedUrl } from '../routineGenerator'
 import EvaIcon from './EvaIcon';
 
-const RoutineDisplay = ({ routine, preferences, onComplete, onBack }) => {
+const RoutineDisplay = ({ routine, preferences, onComplete, onBack, isFallback }) => {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0)
   const [isTimerRunning, setIsTimerRunning] = useState(false)
   const [sessionStartTime, setSessionStartTime] = useState(null)
   const [showInstructions, setShowInstructions] = useState(true)
   const [showVideo, setShowVideo] = useState(true)
   const [completedExercises, setCompletedExercises] = useState([])
+  const [isRoutineSaved, setIsRoutineSaved] = useState(false)
+
+  const handleSaveRoutine = () => {
+    const savedRoutines = JSON.parse(localStorage.getItem('savedRoutines') || '[]');
+    const newRoutine = {
+      id: Date.now(), // Unique ID
+      name: routine.name,
+      exercises: routine.exercises,
+      totalDuration: routine.totalDuration,
+      difficulty: routine.difficulty,
+      benefits: routine.benefits,
+      tips: routine.tips,
+      cooldownAdvice: routine.cooldownAdvice,
+      preferences: preferences, // Save preferences for context
+      savedAt: new Date().toISOString()
+    };
+    savedRoutines.push(newRoutine);
+    localStorage.setItem('savedRoutines', JSON.stringify(savedRoutines));
+    setIsRoutineSaved(true);
+    alert('Routine saved successfully!');
+  };
   
   const currentExercise = routine.exercises[currentExerciseIndex]
   const isLastExercise = currentExerciseIndex === routine.exercises.length - 1
@@ -17,56 +38,6 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack }) => {
   const { time, isRunning, formatTime, start, pause, reset } = useTimer(currentExercise?.duration || 0)
   const { playBeep, playSuccess, playAlert } = useAudio()
   const { requestWakeLock, releaseWakeLock } = useWakeLock()
-
-  useEffect(() => {
-    if (!sessionStartTime && isTimerRunning) {
-      setSessionStartTime(Date.now())
-      requestWakeLock()
-    }
-    
-    return () => {
-      releaseWakeLock()
-    }
-  }, [isTimerRunning, sessionStartTime, requestWakeLock, releaseWakeLock]);
-
-  useEffect(() => {
-    if (time === 0 && isRunning) {
-      playAlert();
-      handleNextExercise();
-    }
-  }, [time, isRunning]);
-
-  useEffect(() => {
-    // Play warning sound at 5 and 3 seconds remaining
-    if ((time === 5 || time === 3) && isRunning) {
-      playBeep();
-    }
-  }, [time, isRunning, playBeep]);
-
-  // Play beep every second while timer is running and time > 0
-  useEffect(() => {
-    if (isRunning && time > 0) {
-      playBeep();
-    }
-    // Only trigger when time changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [time, isRunning]);
-
-  // Reset timer when exercise changes
-  useEffect(() => {
-    reset();
-  }, [currentExerciseIndex, reset]);
-
-  const handleStartTimer = () => {
-    if (!isTimerRunning) {
-      setIsTimerRunning(true);
-    }
-    start();
-  }
-
-  const handlePauseTimer = () => {
-    pause();
-  }
 
   const handleNextExercise = () => {
     if (currentExerciseIndex < routine.exercises.length - 1) {
@@ -84,6 +55,44 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack }) => {
         skippedExercises: 0
       });
     }
+  }
+
+  useEffect(() => {
+    if (!sessionStartTime && isTimerRunning) {
+      setSessionStartTime(Date.now())
+      requestWakeLock()
+    }
+    
+    return () => {
+      releaseWakeLock()
+    }
+  }, [isTimerRunning, sessionStartTime, requestWakeLock, releaseWakeLock]);
+
+  useEffect(() => {
+    if (time === 0 && isRunning) {
+      playAlert();
+      handleNextExercise();
+    }
+    // Play beep every second during the last 10 seconds
+    if (isRunning && time > 0 && time <= 10) {
+      playBeep();
+    }
+  }, [time, isRunning, playAlert, handleNextExercise, playBeep]);
+
+  // Reset timer when exercise changes
+  useEffect(() => {
+    reset();
+  }, [currentExerciseIndex, reset]);
+
+  const handleStartTimer = () => {
+    if (!isTimerRunning) {
+      setIsTimerRunning(true);
+    }
+    start();
+  }
+
+  const handlePauseTimer = () => {
+    pause();
   }
 
   const handlePreviousExercise = () => {
@@ -106,6 +115,11 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack }) => {
       {/* Header */}
       <div className="routine-header">
         <h1 className="header-text">{routine.name}</h1>
+        {isFallback && (
+          <p style={{ color: '#ff9800', textAlign: 'center', marginBottom: '1rem' }}>
+            AI generation unavailable. Displaying a general routine.
+          </p>
+        )}
         <div className="routine-meta">
           <span>
             <EvaIcon name="clock-outline" width={20} height={20} fill="#64748b" style={{ marginRight: '0.25rem' }} />
@@ -306,6 +320,16 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack }) => {
           />
         </div>
       </div>
+
+      {/* Save Routine Button */}
+      <button 
+        className="btn" 
+        onClick={handleSaveRoutine}
+        disabled={isRoutineSaved}
+        style={{ marginTop: '1rem' }}
+      >
+        {isRoutineSaved ? 'Routine Saved!' : 'Save Routine'}
+      </button>
 
       {/* Back Button */}
       <button 

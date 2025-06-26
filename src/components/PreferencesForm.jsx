@@ -3,6 +3,7 @@ import { GOALS, BODY_PARTS, DIFFICULTY_LEVELS, validateRoutinePreferences } from
 import { EQUIPMENT_TYPES, EQUIPMENT_INFO } from '../services/api'
 import EvaIcon from './EvaIcon';
 import StretchFigureLottie from './StretchFigureLottie';
+import MessageCarousel from './MessageCarousel';
 
 const PreferencesForm = ({ onGenerate, stats }) => {
   const [duration, setDuration] = useState(10)
@@ -21,6 +22,16 @@ const PreferencesForm = ({ onGenerate, stats }) => {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
   const [showStatsSummary, setShowStatsSummary] = useState(true);
+  const [showSaveConfirmation, setShowSaveConfirmation] = useState(false);
+
+  useEffect(() => {
+    if (showSaveConfirmation) {
+      const timer = setTimeout(() => {
+        setShowSaveConfirmation(false);
+      }, 2000); // Hide after 2 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [showSaveConfirmation]);
 
   const quickStartOptions = [
     {
@@ -259,7 +270,17 @@ const PreferencesForm = ({ onGenerate, stats }) => {
 
       {/* Hero Section */}
       <div className="hero-card" style={{ background: '#232b39', borderRadius: '1.25rem', boxShadow: '0 4px 24px 0 #00000022', padding: '2rem 1.5rem', marginBottom: '2rem', textAlign: 'center' }}>
-        <h1 className="hero-headline">Stretch smarter. Feel stronger.</h1>
+        <MessageCarousel
+              messages={[
+                "Stretch smarter. Feel stronger.",
+                "Release tension. Regain motion.",
+                "Unlock your body's best.",
+                "Small stretches. Big results.",
+                "Breathe in. Stretch out.",
+                "Feel better in 5 minutes.",
+              ]}
+              className="hero-headline"
+            />
         <div className="hero-subheadline">Daily guided stretches to unlock your body's best.</div>
       </div>
 
@@ -279,7 +300,7 @@ const PreferencesForm = ({ onGenerate, stats }) => {
               onClick={option.preset}
             >
               <div className="quick-start-title">
-                <span className="routine-icon">{/* SVG or animated icon here */}</span>
+                <EvaIcon name={quickStartEvaIcons[option.id]} width={24} height={24} fill={option.iconColor} />
                 <span>{option.title}</span>
               </div>
               <div className="quick-start-subtitle">{option.subtitle}</div>
@@ -348,9 +369,16 @@ const PreferencesForm = ({ onGenerate, stats }) => {
           type="button"
           className="btn"
           style={{ marginBottom: '1rem' }}
-          onClick={() => setBodyParts([...bodyParts])}
+          onClick={() => {
+            setBodyParts([...bodyParts]);
+            setShowSaveConfirmation(true);
+          }}
         >
-          Save Selection
+          {showSaveConfirmation ? (
+            <EvaIcon name="checkmark-circle-2-outline" style={{ fontSize: 22, color: 'white' }} />
+          ) : (
+            <span>Save Selection</span>
+          )}
         </button>
       </section>
 
