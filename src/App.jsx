@@ -26,10 +26,8 @@ function App() {
 
   // Check if this is first time or if API keys are needed
   useEffect(() => {
-    const hasSeenAPIConfig = localStorage.getItem('has_seen_api_config')
-    if (!hasSeenAPIConfig) {
-      setShowAPIConfig(true)
-    }
+    console.log('Environment Variables:', import.meta.env);
+    // Removed automatic display of API config on first launch
   }, [])
 
   useEffect(() => {
