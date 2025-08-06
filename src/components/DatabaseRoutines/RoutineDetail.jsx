@@ -117,7 +117,7 @@ const RoutineDetail = ({ routine, onClose }) => {
           padding: '1.5rem', 
           height: '100%', 
           overflow: 'auto'
-        }} className="no-scrollbar">>
+        }} className="no-scrollbar">
           <h2 style={{ 
             color: 'white', 
             marginTop: 0,
@@ -324,7 +324,7 @@ const RoutineDetail = ({ routine, onClose }) => {
                 padding: '0.5rem',
                 backgroundColor: '#1a2031',
                 borderRadius: '0.5rem'
-              }} className="no-scrollbar">>
+              }} className="no-scrollbar">
                 {routine.exercises.map((exercise, index) => (
                   <div 
                     key={`${exercise.exercise_id}_${index}`}

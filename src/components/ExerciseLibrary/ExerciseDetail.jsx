@@ -98,7 +98,7 @@ const ExerciseDetail = ({ exercise, onClose }) => {
           padding: '1.5rem', 
           height: '100%', 
           overflow: 'auto'
-        }} className="no-scrollbar">>
+        }} className="no-scrollbar">
           <h2 style={{ 
             color: 'white', 
             marginTop: 0,
