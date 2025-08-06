@@ -163,6 +163,8 @@ h2 {
 .time-button:hover,
 .duration-option:hover {
   background-color: var(--border-light);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
 }
 
 .time-button-active,
@@ -256,13 +258,14 @@ h2 {
   font-weight: 600;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s ease, background-color 0.3s ease;
   width: 100%;
 }
 
 .btn:hover {
   background-color: var(--primary-green-dark);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
 }
 
 .btn:active {
@@ -278,6 +281,8 @@ h2 {
 
 .btn-secondary:hover {
   background-color: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
 }
 
 /* Navigation Bar Consistent Styling */
@@ -388,6 +393,7 @@ section {
 .quick-start-card:hover {
   background: #2d3344;
   transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
 }
 .quick-start-title {
   display: flex;
@@ -750,13 +756,8 @@ section {
 }
 
 .stats-summary {
-  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
-  padding: 1rem;
-  border-radius: var(--radius-md);
-  text-align: center;
-  margin-bottom: 1rem;
-  color: var(--primary-green-dark);
-  font-weight: 500;
+  /* Setting to empty so our inline styles are not overridden */
+  position: relative;
 }
 
 /* Disabled States */
@@ -945,6 +946,53 @@ section {
   vertical-align: middle;
 }
 
+/* Hide scrollbars for detail views */
+.no-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Body part selection hover effect */
+.body-part-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #1e293b;
+  border-radius: 6px;
+  padding: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.body-part-label:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+  background: #2d3344;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Save confirmation animation */
+.save-confirmation-animation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: saveFlash 0.4s ease-out;
+}
+
+@keyframes saveFlash {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 /* Fix for goal card icons */
 .goal-icon {
   display: flex;
@@ -956,6 +1004,50 @@ section {
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
+}
+
+/* Exercise Search Styling */
+.exercise-search input[type="range"] {
+  -webkit-appearance: none;
+  height: 6px;
+  background: #1a2031;
+  border-radius: 3px;
+  outline: none;
+}
+
+.exercise-search input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--primary-green);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.exercise-search input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--primary-green);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+.popular-search-tag {
+  background: #1a2031;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  color: #b0b8c9;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.popular-search-tag:hover {
+  background: #2d3344;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
 }
 
 /* Selection color */
@@ -984,6 +1076,7 @@ html {
 .equipment-card:hover {
   background-color: var(--border-light);
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
 }
 
 .equipment-card.active {
@@ -1168,6 +1261,12 @@ html {
   transition: all 0.2s ease;
   background-color: var(--bg-white);
   color: var(--body-text);
+}
+
+.form-input:hover {
+  border-color: var(--primary-green);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
 }
 
 .form-input:focus {

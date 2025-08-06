@@ -1,5 +1,6 @@
-// Enhanced routine generation system with AI integration
+// Enhanced routine generation system with AI and database integration
 import { generateAIRoutine, loadExerciseVideos } from './services/api';
+import stretchingDatabase from './services/database/stretchingDatabase';
 
 export const BODY_PARTS = {
   NECK: 'neck',
@@ -149,9 +150,46 @@ export class RoutineGenerator {
     };
     
     try {
+      // First try to get exercises from database based on preferences
+      const databaseExercises = await this.getDatabaseExercises(updatedPreferences);
+      
+      if (databaseExercises.length >= 3) {
+        // If we have enough database exercises, use them
+        const routineName = this.generateRoutineName(preferences.goals);
+        const tips = this.generateTips(preferences);
+        
+        // Select appropriate exercises based on duration and other factors
+        const selectedExercises = this.selectExercisesForRoutine(
+          databaseExercises, 
+          preferences.duration, 
+          preferences.difficulty
+        );
+        
+        // Load YouTube videos for exercises that don't have them
+        const exercisesWithVideos = await loadExerciseVideos(
+          selectedExercises.filter(ex => !ex.videoId)
+        );
+        
+        // Extract benefits from selected exercises
+        const benefits = this.extractBenefits(selectedExercises);
+        
+        return {
+          name: routineName,
+          exercises: exercisesWithVideos,
+          totalDuration: exercisesWithVideos.reduce((sum, ex) => sum + ex.duration, 0),
+          difficulty: preferences.difficulty,
+          benefits: benefits,
+          tips: tips,
+          cooldownAdvice: "Take a few deep breaths and gradually return to your normal activities.",
+          isFallback: false,
+          source: 'database'
+        };
+      }
+      
+      // If database doesn't have enough exercises, try AI generation
       const apiKey = localStorage.getItem('openrouter_api_key');
       if (apiKey) {
-        // Try AI generation first
+        // Try AI generation
         const aiRoutine = await generateAIRoutine(updatedPreferences);
         
         // Load YouTube videos for exercises
@@ -165,7 +203,8 @@ export class RoutineGenerator {
           benefits: this.extractBenefits(exercisesWithVideos),
           tips: aiRoutine.warmupTips || [],
           cooldownAdvice: aiRoutine.cooldownAdvice,
-          isFallback: false // Not a fallback
+          isFallback: false,
+          source: 'ai'
         };
       }
     } catch (error) {
@@ -214,9 +253,152 @@ export class RoutineGenerator {
         benefits: benefits,
         tips: tips,
         cooldownAdvice: "Perform light stretches and cool down for 5-10 minutes.",
-        isFallback: true // This is a fallback routine
+        isFallback: true, // This is a fallback routine
+        source: 'fallback'
       };
     }
+  }
+  
+  // New method to get exercises from database
+  async getDatabaseExercises(preferences) {
+    try {
+      // Map body parts to muscle groups
+      const muscleGroups = this.mapBodyPartsToMuscleGroups(preferences.bodyParts);
+      
+      // Map goals to purposes
+      const purposes = this.mapGoalsToPurposes(preferences.goals);
+      
+      // Query exercises that match preferences
+      let exercises = [];
+      
+      // Try to get exercises for each muscle group
+      for (const muscleGroup of muscleGroups) {
+        const muscleExercises = await stretchingDatabase.getExercisesByMuscleGroup(muscleGroup);
+        exercises = [...exercises, ...muscleExercises];
+      }
+      
+      // Filter by difficulty
+      const difficultyLevel = this.mapDifficultyLevel(preferences.difficulty);
+      exercises = exercises.filter(ex => ex.difficulty_level === difficultyLevel);
+      
+      // Filter by equipment if needed
+      const hasEquipment = preferences.equipment.some(eq => eq !== 'none');
+      if (!hasEquipment) {
+        exercises = exercises.filter(ex => !ex.equipment_needed);
+      }
+      
+      // Filter by purpose if possible
+      if (purposes.length > 0) {
+        exercises = exercises.filter(ex => 
+          ex.purpose.some(p => purposes.includes(p))
+        );
+      }
+      
+      // Remove duplicates
+      const uniqueExercises = [...new Map(exercises.map(ex => [ex.exercise_id, ex])).values()];
+      
+      return uniqueExercises;
+    } catch (error) {
+      console.error('Error getting database exercises:', error);
+      return [];
+    }
+  }
+  
+  // Helper method to map body parts to muscle groups
+  mapBodyPartsToMuscleGroups(bodyParts) {
+    const mapping = {
+      [BODY_PARTS.NECK]: ['Neck'],
+      [BODY_PARTS.SHOULDERS]: ['Shoulders', 'Deltoids'],
+      [BODY_PARTS.UPPER_BACK]: ['Upper Back', 'Trapezius', 'Rhomboids'],
+      [BODY_PARTS.LOWER_BACK]: ['Lower Back', 'Lumbar'],
+      [BODY_PARTS.CHEST]: ['Chest', 'Pectorals'],
+      [BODY_PARTS.ARMS]: ['Biceps', 'Triceps', 'Forearms'],
+      [BODY_PARTS.HIPS]: ['Hips', 'Hip Flexors', 'Psoas'],
+      [BODY_PARTS.LEGS]: ['Quadriceps', 'Hamstrings', 'Adductors'],
+      [BODY_PARTS.CALVES]: ['Calves', 'Soleus', 'Gastrocnemius'],
+      [BODY_PARTS.FULL_BODY]: ['Full Body']
+    };
+    
+    return bodyParts.flatMap(part => mapping[part] || []);
+  }
+  
+  // Helper method to map goals to purposes
+  mapGoalsToPurposes(goals) {
+    const mapping = {
+      [GOALS.MORNING_WAKE_UP]: ['Warm-up'],
+      [GOALS.PRE_WORKOUT]: ['Warm-up'],
+      [GOALS.POST_WORKOUT]: ['Cool-down'],
+      [GOALS.DESK_BREAK]: ['Maintenance'],
+      [GOALS.STRESS_RELIEF]: ['Rehabilitation'],
+      [GOALS.BEDTIME_RELAX]: ['Cool-down'],
+      [GOALS.PAIN_RELIEF]: ['Rehabilitation'],
+      [GOALS.FLEXIBILITY]: ['Flexibility']
+    };
+    
+    return goals.flatMap(goal => mapping[goal] || []);
+  }
+  
+  // Helper method to map difficulty levels
+  mapDifficultyLevel(difficulty) {
+    const mapping = {
+      [DIFFICULTY_LEVELS.BEGINNER]: 'Beginner',
+      [DIFFICULTY_LEVELS.INTERMEDIATE]: 'Intermediate',
+      [DIFFICULTY_LEVELS.ADVANCED]: 'Advanced'
+    };
+    
+    return mapping[difficulty] || 'Beginner';
+  }
+  
+  // Helper method to select exercises for a routine based on duration
+  selectExercisesForRoutine(exercises, durationSeconds, difficulty) {
+    // Shuffle exercises for variety
+    const shuffledExercises = [...exercises].sort(() => 0.5 - Math.random());
+    
+    // Calculate how many exercises to include based on duration
+    const avgDurationPerExercise = {
+      [DIFFICULTY_LEVELS.BEGINNER]: 40,
+      [DIFFICULTY_LEVELS.INTERMEDIATE]: 35,
+      [DIFFICULTY_LEVELS.ADVANCED]: 30
+    };
+    
+    const targetDuration = avgDurationPerExercise[difficulty] || 35;
+    const targetCount = Math.max(3, Math.floor(durationSeconds / targetDuration));
+    
+    // Select exercises
+    const selectedExercises = shuffledExercises.slice(0, targetCount);
+    
+    // Transform to match the expected format
+    return selectedExercises.map(ex => ({
+      name: ex.name,
+      duration: ex.duration_seconds || 30,
+      description: ex.description,
+      equipment: ex.equipment_details || [],
+      targetMuscles: ex.primary_muscle_groups,
+      benefits: ['Improves flexibility', 'Reduces tension'],
+      tips: ex.cautions || "Maintain proper form",
+      videoId: ex.video_url ? this.extractVideoId(ex.video_url) : null,
+      videoSearchQuery: ex.name
+    }));
+  }
+  
+  // Helper to extract YouTube video ID
+  extractVideoId(url) {
+    if (!url) return null;
+    
+    // Handle various YouTube URL formats
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\?\/]+)/,
+      /youtube\.com\/watch\?.*v=([^&]+)/
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+    
+    return null;
   }
   
   generateRoutineName(goals) {

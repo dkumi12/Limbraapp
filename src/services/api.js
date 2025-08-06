@@ -47,20 +47,47 @@ Body Parts: ${bodyParts.join(', ')}
 Equipment Available: ${equipment.join(', ')}
 Difficulty Level: ${difficulty}
 Energy Level: ${energyLevel}
-Specific Problems: ${problems.join(', ')}
+Specific Problems: ${problems ? problems.join(', ') : 'None'}
+
+Please follow the exact database format that we use in our app. Here's an example of our exercise format:
+
+{
+  "exercise_id": "generated_001",
+  "name": "Standing Hamstring Stretch",
+  "description": "Stand tall with one heel on a slightly elevated surface. Keep your leg straight but not locked. Hinge forward at your hips, keeping your back straight, until you feel a stretch in the back of your thigh. Hold for the recommended duration.",
+  "type": "Static",
+  "primary_muscle_groups": ["Hamstrings"],
+  "secondary_muscle_groups": ["Glutes", "Calves"],
+  "purpose": ["Flexibility", "Cool-down"],
+  "equipment_needed": true,
+  "equipment_details": ["Elevated Surface (step, low bench)"],
+  "difficulty_level": "Beginner",
+  "duration_seconds": 30,
+  "repetitions": 1,
+  "sets": 2,
+  "video_url": null,
+  "cautions": "Avoid rounding your back. Do not lock your knee."
+}
 
 Please provide a JSON response with exactly this structure:
 {
   "routineName": "Name of the routine",
   "exercises": [
     {
+      "exercise_id": "generated_001",
       "name": "Exercise name",
-      "duration": 30,
       "description": "Clear, concise instructions",
-      "equipment": ["equipment needed"],
-      "targetMuscles": ["muscles targeted"],
-      "benefits": ["key benefits"],
-      "tips": "Important form or safety tip",
+      "type": "Static or Dynamic",
+      "primary_muscle_groups": ["Primary muscles"],
+      "secondary_muscle_groups": ["Secondary muscles"],
+      "purpose": ["Matching the goals provided"],
+      "equipment_needed": boolean,
+      "equipment_details": ["Equipment details if needed"],
+      "difficulty_level": "${difficulty}",
+      "duration_seconds": 30,
+      "repetitions": 1,
+      "sets": 2,
+      "cautions": "Important form or safety tip",
       "videoSearchQuery": "search query for YouTube"
     }
   ],
@@ -75,6 +102,8 @@ Requirements:
 - Include equipment-specific exercises when equipment is available
 - Ensure total duration matches requested time
 - Make exercises appropriate for the difficulty level
+- Assign proper muscle groups based on the body parts provided
+- Set purposes that match with the goals provided
 `;
 
   try {
@@ -98,7 +127,7 @@ Requirements:
         messages: [
           {
             role: 'system',
-            content: 'You are a professional fitness and stretching expert. Generate safe, effective routines.'
+            content: 'You are a professional fitness and stretching expert. Generate safe, effective routines following the exact database format provided.'
           },
           {
             role: 'user',
@@ -162,6 +191,117 @@ export async function searchYouTubeVideos(query, maxResults = 5) {
   } catch (error) {
     console.error('Error searching YouTube:', error);
     return [];
+  }
+}
+
+// Generate a routine based on a search query
+export async function generateRoutineFromSearch(searchQuery, preferences) {
+  const { duration, difficulty = 'intermediate' } = preferences;
+  
+  const prompt = `
+I need a stretching routine focused on "${searchQuery}". Please create a personalized routine based on this search.
+
+Duration: ${duration} seconds (${Math.round(duration / 60)} minutes)
+Difficulty Level: ${difficulty}
+
+Please follow the exact database format that we use in our app. Here's an example of our exercise format:
+
+{
+  "exercise_id": "generated_001",
+  "name": "Standing Hamstring Stretch",
+  "description": "Stand tall with one heel on a slightly elevated surface. Keep your leg straight but not locked. Hinge forward at your hips, keeping your back straight, until you feel a stretch in the back of your thigh. Hold for the recommended duration.",
+  "type": "Static",
+  "primary_muscle_groups": ["Hamstrings"],
+  "secondary_muscle_groups": ["Glutes", "Calves"],
+  "purpose": ["Flexibility", "Cool-down"],
+  "equipment_needed": true,
+  "equipment_details": ["Elevated Surface (step, low bench)"],
+  "difficulty_level": "Beginner",
+  "duration_seconds": 30,
+  "repetitions": 1,
+  "sets": 2,
+  "video_url": null,
+  "cautions": "Avoid rounding your back. Do not lock your knee."
+}
+
+Please provide a JSON response with exactly this structure:
+{
+  "routineName": "Name of the routine focused on ${searchQuery}",
+  "exercises": [
+    {
+      "exercise_id": "search_001",
+      "name": "Exercise name",
+      "description": "Clear, concise instructions",
+      "type": "Static or Dynamic",
+      "primary_muscle_groups": ["Primary muscles"],
+      "secondary_muscle_groups": ["Secondary muscles"],
+      "purpose": ["Flexibility", "Warm-up", or other relevant purposes],
+      "equipment_needed": boolean,
+      "equipment_details": ["Equipment details if needed"],
+      "difficulty_level": "${difficulty}",
+      "duration_seconds": 30,
+      "repetitions": 1,
+      "sets": 2,
+      "cautions": "Important form or safety tip",
+      "videoSearchQuery": "search query for YouTube"
+    }
+  ],
+  "warmupTips": ["3-5 general tips related to ${searchQuery}"],
+  "cooldownAdvice": "Brief cooldown advice"
+}
+
+Requirements:
+- Create exercises that specifically target ${searchQuery} related stretches
+- Each exercise should be 20-60 seconds
+- Include variety of movements
+- Ensure total duration matches requested time
+- Make exercises appropriate for the difficulty level
+`;
+
+  try {
+    const apiKey = getOpenRouterAPIKey();
+    const selectedModel = getSelectedModel();
+
+    if (!apiKey) {
+      throw new Error('OpenRouter API key not configured');
+    }
+    
+    const response = await fetch(OPENROUTER_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': window.location.origin,
+        'X-Title': 'Stretch Easy App'
+      },
+      body: JSON.stringify({
+        model: selectedModel,
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a professional fitness and stretching expert. Generate safe, effective routines following the exact database format provided, focused on the specific search query.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 2000
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const routineData = JSON.parse(data.choices[0].message.content);
+    
+    return routineData;
+  } catch (error) {
+    console.error('Error generating routine from search:', error);
+    throw error;
   }
 }
 

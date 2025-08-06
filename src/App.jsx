@@ -58,6 +58,21 @@ function App() {
     setError(null); // Clear any previous errors
     try {
       console.log('Generating routine with preferences:', userPreferences);
+      
+      // Handle search-generated routines
+      if (userPreferences.searchGenerated) {
+        setRoutine(userPreferences.routine);
+        setPreferences({
+          duration: userPreferences.routine.totalDuration,
+          goals: ['custom_search'],
+          bodyParts: ['custom_search'],
+          searchTerm: userPreferences.routine.searchTerm
+        });
+        setCurrentScreen('routine');
+        return;
+      }
+      
+      // Normal routine generation flow
       setPreferences(userPreferences)
       const generatedRoutine = await routineGenerator.generateRoutine(userPreferences)
       setRoutine(generatedRoutine)
@@ -162,7 +177,25 @@ function App() {
 
         {showCompletionNotification && (
           <div className="session-complete">
-            <button className="back-button" onClick={() => { setShowCompletionNotification(false); setCurrentScreen('preferences'); }} style={{ position: 'absolute', left: '1rem', top: '1rem', background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>←</button>
+            <button 
+              className="back-button" 
+              onClick={() => { 
+                setShowCompletionNotification(false); 
+                setCurrentScreen('preferences'); 
+              }} 
+              style={{ 
+                position: 'absolute', 
+                left: '1rem', 
+                top: '1rem', 
+                background: 'none', 
+                border: 'none', 
+                fontSize: '1.5rem', 
+                cursor: 'pointer', 
+                zIndex: 10 
+              }}
+            >
+              ←
+            </button>
             <div className="celebration">🎉</div>
             <h2>Great Job!</h2>
             <p className="subheader-text">You've completed your stretching routine</p>
@@ -199,7 +232,7 @@ function App() {
           </button>
           <button className={`nav-item${currentScreen === 'saved' ? ' nav-item-active' : ''}`} onClick={() => { setShowAPIConfig(false); setCurrentScreen('saved'); }}>
             <EvaIcon name="bookmark-outline" width={24} height={24} fill={currentScreen === 'saved' ? '#22c55e' : '#b0b8c9'} />
-            <span style={{ color: currentScreen === 'saved' ? '#22c55e' : '#b0b8c9' }}>Saved</span>
+            <span style={{ color: currentScreen === 'saved' ? '#22c55e' : '#b0b8c9' }}>Library</span>
           </button>
           <button className={`nav-item${currentScreen === 'profile' ? ' nav-item-active' : ''}`} onClick={() => { setShowAPIConfig(false); setCurrentScreen('profile'); }}>
             <EvaIcon name="person-outline" width={24} height={24} fill={currentScreen === 'profile' ? '#22c55e' : '#b0b8c9'} />
