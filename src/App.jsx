@@ -135,30 +135,38 @@ function App() {
         
         {!showAPIConfig && currentScreen === 'preferences' && (
           <>
-            <header className="header" style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+            <header className="header" style={{ 
+              textAlign: 'center', 
+              marginBottom: '1.5rem',
+              background: '#1a2031',
+              padding: '12px',
+              borderRadius: '4px',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
                 <div style={{ 
-                  width: '30px', 
-                  height: '30px', 
-                  backgroundColor: '#004d00', 
+                  color: '#4ADE80', 
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: '4px'
+                  alignItems: 'center'
                 }}>
-                  <div style={{ 
-                    color: 'white', 
-                    fontSize: '12px', 
+                  <span style={{ 
+                    color: '#4ADE80', 
+                    fontSize: '14px', 
                     fontWeight: 'bold',
-                    padding: '2px 4px' 
+                    marginRight: '4px'
                   }}>
                     Limbra
-                  </div>
+                  </span>
+                  <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#4ADE80' }}>
+                    LimbraApp
+                  </span>
                 </div>
-                <div style={{ fontWeight: 'bold', fontSize: '2.2rem', letterSpacing: '0.02em', color: 'var(--primary-green)' }}>LimbraApp</div>
-              </div>
-              <div style={{ fontSize: '0.75rem', color: '#b0b8c9', marginTop: '0.15rem', fontWeight: 400, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                BY EVERBOOMING HEALTH AND WELLNESS&reg;
               </div>
             </header>
             
