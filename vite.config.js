@@ -9,10 +9,10 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Stretch App',
-        short_name: 'StretchApp',
+        name: 'Limbra',
+        short_name: 'Limbra',
         description: 'AI-Powered Personalized Warm-Up & Stretching App',
-        theme_color: '#ffffff',
+        theme_color: '#22c55e',
         icons: [
           {
             src: 'icon-192.png',

@@ -136,7 +136,10 @@ function App() {
         {!showAPIConfig && currentScreen === 'preferences' && (
           <>
             <header className="header" style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-              <div style={{ fontWeight: 'bold', fontSize: '2.2rem', letterSpacing: '0.02em', color: 'var(--primary-green)' }}>LIMBRA</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                <img src="/logo.png" alt="Limbra Logo" style={{ height: '80px', marginBottom: '0.5rem' }} />
+                <div style={{ fontWeight: 'bold', fontSize: '2.2rem', letterSpacing: '0.02em', color: 'var(--primary-green)' }}>LIMBRA</div>
+              </div>
               <div style={{ fontSize: '0.75rem', color: '#b0b8c9', marginTop: '0.15rem', fontWeight: 400, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                 BY EVERBOOMING HEALTH AND WELLNESS&reg;
               </div>
