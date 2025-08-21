@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  NODE_VERSION: '16.x'  # Changed to 16.x for better compatibility
+  NODE_VERSION: '16.x'  # Using 16.x for better compatibility
 
 jobs:
   test:
@@ -16,10 +16,10 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2  # Downgraded to v2 for compatibility
+      uses: actions/checkout@v3
     
     - name: Setup Node.js
-      uses: actions/setup-node@v2  # Downgraded to v2 for compatibility
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
@@ -85,10 +85,10 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2  # Downgraded to v2 for compatibility
+      uses: actions/checkout@v3
     
     - name: Setup Node.js
-      uses: actions/setup-node@v2  # Downgraded to v2 for compatibility
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
@@ -103,7 +103,7 @@ jobs:
         CI: false  # Prevents treating warnings as errors
     
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v2  # Downgraded to v2 for compatibility
+      uses: actions/upload-artifact@v3
       with:
         name: dist-files
         path: dist/
@@ -115,10 +115,10 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2  # Downgraded to v2 for compatibility
+      uses: actions/checkout@v3
     
     - name: Setup Node.js
-      uses: actions/setup-node@v2  # Downgraded to v2 for compatibility
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ env.NODE_VERSION }}
     
@@ -135,7 +135,7 @@ jobs:
       continue-on-error: true
     
     - name: Upload security report
-      uses: actions/upload-artifact@v2  # Downgraded to v2 for compatibility
+      uses: actions/upload-artifact@v3
       with:
         name: security-report
         path: audit-report.json
@@ -150,10 +150,10 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2  # Downgraded to v2 for compatibility
+      uses: actions/checkout@v3
     
     - name: Setup Node.js
-      uses: actions/setup-node@v2  # Downgraded to v2 for compatibility
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
