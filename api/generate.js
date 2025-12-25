@@ -54,11 +54,19 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('HuggingFace API Error:', response.status, errorText);
+      console.error('HuggingFace API Error Details:');
+      console.error('Status:', response.status);
+      console.error('Status Text:', response.statusText);
+      console.error('Response Body:', errorText);
+      console.error('Request URL:', 'https://api-inference.huggingface.co/models/dkumi12/stretchgptv2');
+      console.error('Token exists:', !!HF_TOKEN);
+      
       return res.status(response.status).json({
         error: 'HuggingFace API error',
         status: response.status,
-        details: errorText
+        statusText: response.statusText,
+        details: errorText,
+        hint: 'Check Vercel logs for full error details'
       });
     }
 
