@@ -4,6 +4,15 @@ import { getYouTubeEmbedUrl } from '../routineGenerator'
 import EvaIcon from './EvaIcon';
 
 const RoutineDisplay = ({ routine, preferences, onComplete, onBack, isFallback }) => {
+  // Debug logging to understand what we're receiving
+  useEffect(() => {
+    console.log('RoutineDisplay mounted with:', {
+      routine,
+      hasExercises: routine?.exercises?.length,
+      routineKeys: routine ? Object.keys(routine) : 'no routine'
+    });
+  }, [routine]);
+
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0)
   const [isTimerRunning, setIsTimerRunning] = useState(false)
   const [sessionStartTime, setSessionStartTime] = useState(null)
@@ -11,6 +20,24 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack, isFallback }
   const [showVideo, setShowVideo] = useState(true)
   const [completedExercises, setCompletedExercises] = useState([])
   const [isRoutineSaved, setIsRoutineSaved] = useState(false)
+
+  // Safety check: if no exercises, show error
+  if (!routine || !routine.exercises || routine.exercises.length === 0) {
+    return (
+      <div className="routine-container">
+        <div style={{ padding: '2rem', textAlign: 'center' }}>
+          <h2>No Exercises Available</h2>
+          <p>Unable to generate routine. Please try again.</p>
+          <pre style={{ textAlign: 'left', fontSize: '0.75rem', background: '#1e293b', padding: '1rem', borderRadius: '8px', overflow: 'auto' }}>
+            {JSON.stringify(routine, null, 2)}
+          </pre>
+          <button className="btn" onClick={onBack} style={{ marginTop: '1rem' }}>
+            Back to Preferences
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleSaveRoutine = () => {
     const savedRoutines = JSON.parse(localStorage.getItem('savedRoutines') || '[]');

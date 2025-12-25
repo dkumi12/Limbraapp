@@ -57,7 +57,7 @@ function App() {
   const handleGenerateRoutine = async (userPreferences) => {
     setError(null); // Clear any previous errors
     try {
-      console.log('Generating routine with preferences:', userPreferences);
+      console.log('🎯 Generating routine with preferences:', userPreferences);
       
       // Handle search-generated routines
       if (userPreferences.searchGenerated) {
@@ -75,10 +75,24 @@ function App() {
       // Normal routine generation flow
       setPreferences(userPreferences)
       const generatedRoutine = await routineGenerator.generateRoutine(userPreferences)
+      
+      console.log('✅ Generated routine:', generatedRoutine);
+      console.log('📋 Routine has exercises:', generatedRoutine?.exercises?.length || 0);
+      
+      if (!generatedRoutine) {
+        throw new Error('No routine generated');
+      }
+      
+      if (!generatedRoutine.exercises || generatedRoutine.exercises.length === 0) {
+        throw new Error('Generated routine has no exercises');
+      }
+      
       setRoutine(generatedRoutine)
       setCurrentScreen('routine')
+      
+      console.log('🎉 Screen changed to routine, routine state set');
     } catch (error) {
-      console.error('Error generating routine:', error)
+      console.error('❌ Error generating routine:', error)
       setError(error.message)
       setCurrentScreen('preferences'); // Go back to preferences on error
     }

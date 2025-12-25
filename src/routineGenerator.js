@@ -150,63 +150,34 @@ export class RoutineGenerator {
     };
     
     try {
-      // First try to get exercises from database based on preferences
-      const databaseExercises = await this.getDatabaseExercises(updatedPreferences);
+      // TEMPORARY: Skip database and force AI generation for testing
+      console.log('⚡ Forcing AI generation for testing...');
       
-      if (databaseExercises.length >= 3) {
-        // If we have enough database exercises, use them
-        const routineName = this.generateRoutineName(preferences.goals);
-        const tips = this.generateTips(preferences);
-        
-        // Select appropriate exercises based on duration and other factors
-        const selectedExercises = this.selectExercisesForRoutine(
-          databaseExercises, 
-          preferences.duration, 
-          preferences.difficulty
-        );
-        
-        // Load YouTube videos for exercises that don't have them
-        const exercisesWithVideos = await loadExerciseVideos(
-          selectedExercises.filter(ex => !ex.videoId)
-        );
-        
-        // Extract benefits from selected exercises
-        const benefits = this.extractBenefits(selectedExercises);
-        
-        return {
-          name: routineName,
-          exercises: exercisesWithVideos,
-          totalDuration: exercisesWithVideos.reduce((sum, ex) => sum + ex.duration, 0),
-          difficulty: preferences.difficulty,
-          benefits: benefits,
-          tips: tips,
-          cooldownAdvice: "Take a few deep breaths and gradually return to your normal activities.",
-          isFallback: false,
-          source: 'database'
-        };
+      // Try AI generation
+      const aiRoutine = await generateAIRoutine(updatedPreferences);
+      console.log('🤖 AI Routine received:', aiRoutine);
+      
+      // Defensive video loading: Don't let video errors break the routine
+      let exercisesWithVideos = aiRoutine.exercises;
+      try {
+        exercisesWithVideos = await loadExerciseVideos(aiRoutine.exercises);
+      } catch (videoError) {
+        console.warn('Video loading failed, proceeding without videos:', videoError);
+        exercisesWithVideos = aiRoutine.exercises; // Use exercises without videos
       }
       
-      // If database doesn't have enough exercises, try AI generation
-      const apiKey = localStorage.getItem('openrouter_api_key');
-      if (apiKey) {
-        // Try AI generation
-        const aiRoutine = await generateAIRoutine(updatedPreferences);
-        
-        // Load YouTube videos for exercises
-        const exercisesWithVideos = await loadExerciseVideos(aiRoutine.exercises);
-        
-        return {
-          name: aiRoutine.routineName,
-          exercises: exercisesWithVideos,
-          totalDuration: exercisesWithVideos.reduce((sum, ex) => sum + ex.duration, 0),
-          difficulty: preferences.difficulty,
-          benefits: this.extractBenefits(exercisesWithVideos),
-          tips: aiRoutine.warmupTips || [],
-          cooldownAdvice: aiRoutine.cooldownAdvice,
-          isFallback: false,
-          source: 'ai'
-        };
-      }
+      return {
+        name: aiRoutine.routineName,
+        exercises: exercisesWithVideos,
+        totalDuration: exercisesWithVideos.reduce((sum, ex) => sum + ex.duration, 0),
+        difficulty: preferences.difficulty,
+        benefits: this.extractBenefits(exercisesWithVideos),
+        tips: aiRoutine.warmupTips || [],
+        cooldownAdvice: aiRoutine.cooldownAdvice,
+        isFallback: false,
+        source: 'ai'
+      };
+      
     } catch (error) {
       console.error('AI generation failed, falling back to local exercises:', error);
       // Fallback to local exercises if AI generation fails

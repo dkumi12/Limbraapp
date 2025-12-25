@@ -1,4 +1,10 @@
-// OpenRouter API configuration and service
+// src/services/api.js
+// Updated for StretchGPT V3 Integration
+
+// ============================================
+// API CONFIGURATION
+// ============================================
+
 const getOpenRouterAPIKey = () => {
   return localStorage.getItem('openrouter_api_key') || '';
 }
@@ -7,14 +13,22 @@ const getYouTubeAPIKey = () => {
   return localStorage.getItem('youtube_api_key') || '';
 }
 
-const getSelectedModel = () => {
-  return localStorage.getItem('selected_model') || 'anthropic/claude-3-haiku'; // Default to claude-3-haiku if not set
+const getHuggingFaceToken = () => {
+  return localStorage.getItem('hf_access_token') || '';
 }
 
-const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const getSelectedModel = () => {
+  return localStorage.getItem('selected_model') || 'anthropic/claude-3-haiku';
+}
 
-// YouTube API configuration
+const getAIProvider = () => {
+  return localStorage.getItem('ai_provider') || 'stretchgpt';
+}
+
+// API Endpoints
+const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const YOUTUBE_API_URL = 'https://www.googleapis.com/youtube/v3/search';
+const HF_API_URL = 'https://api-inference.huggingface.co/models/dkumi12/stretchgptv2';
 
 // Equipment types
 export const EQUIPMENT_TYPES = {
@@ -35,75 +49,248 @@ export const EQUIPMENT_TYPES = {
   MAT: 'mat'
 };
 
-// Generate routine using AI
-export async function generateAIRoutine(preferences) {
-  const { duration, goals, bodyParts, equipment, difficulty, energyLevel, problems } = preferences;  
-  const prompt = `
-Generate a personalized stretching and warm-up routine with the following requirements:
+// ============================================
+// STRETCHGPT V3 INTEGRATION
+// ============================================
 
-Duration: ${duration} seconds (${Math.round(duration / 60)} minutes)
-Goals: ${goals.join(', ')}
-Body Parts: ${bodyParts.join(', ')}
-Equipment Available: ${equipment.join(', ')}
-Difficulty Level: ${difficulty}
-Energy Level: ${energyLevel}
-Specific Problems: ${problems ? problems.join(', ') : 'None'}
+export async function generateStretchGPTV3Routine(preferences) {
+  const hfToken = getHuggingFaceToken();
+  
+  if (!hfToken) {
+    throw new Error('HuggingFace token not configured. Please add your token in Settings.');
+  }
 
-Please follow the exact database format that we use in our app. Here's an example of our exercise format:
+  const { goals, bodyParts, difficulty } = preferences;
+  
+  // Build prompt matching V3 training format
+  const goalText = goals.join(', ').replace(/_/g, ' ');
+  const targetText = mapBodyPartsToV3Target(bodyParts);
+  
+  const prompt = `<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nGenerate a ${difficulty} stretching routine for ${goalText}.\n\nTargeting ${targetText}. No equipment.<|eot_id|><|start_header_id|>assistant<|end_header_id|>`;
 
-{
-  "exercise_id": "generated_001",
-  "name": "Standing Hamstring Stretch",
-  "description": "Stand tall with one heel on a slightly elevated surface. Keep your leg straight but not locked. Hinge forward at your hips, keeping your back straight, until you feel a stretch in the back of your thigh. Hold for the recommended duration.",
-  "type": "Static",
-  "primary_muscle_groups": ["Hamstrings"],
-  "secondary_muscle_groups": ["Glutes", "Calves"],
-  "purpose": ["Flexibility", "Cool-down"],
-  "equipment_needed": true,
-  "equipment_details": ["Elevated Surface (step, low bench)"],
-  "difficulty_level": "Beginner",
-  "duration_seconds": 30,
-  "repetitions": 1,
-  "sets": 2,
-  "video_url": null,
-  "cautions": "Avoid rounding your back. Do not lock your knee."
-}
+  console.log('🚀 StretchGPT V3 Prompt:', prompt);
 
-Please provide a JSON response with exactly this structure:
-{
-  "routineName": "Name of the routine",
-  "exercises": [
-    {
-      "exercise_id": "generated_001",
-      "name": "Exercise name",
-      "description": "Clear, concise instructions",
-      "type": "Static or Dynamic",
-      "primary_muscle_groups": ["Primary muscles"],
-      "secondary_muscle_groups": ["Secondary muscles"],
-      "purpose": ["Matching the goals provided"],
-      "equipment_needed": boolean,
-      "equipment_details": ["Equipment details if needed"],
-      "difficulty_level": "${difficulty}",
-      "duration_seconds": 30,
-      "repetitions": 1,
-      "sets": 2,
-      "cautions": "Important form or safety tip",
-      "videoSearchQuery": "search query for YouTube"
+  try {
+    // Call Vercel serverless function instead of HuggingFace directly
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        prompt: prompt,
+        parameters: {
+          max_new_tokens: 1500,
+          temperature: 0.7,
+          do_sample: true,
+          return_full_text: false
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Serverless API Error:', response.status, errorData);
+      throw new Error(`Serverless API error: ${response.status} - ${errorData.error || 'Unknown error'}`);
     }
-  ],
-  "warmupTips": ["3-5 general tips"],
-  "cooldownAdvice": "Brief cooldown advice"
+
+    const result = await response.json();
+    console.log('✅ StretchGPT V3 Raw Response:', result);
+    
+    // Extract generated text
+    let rawText;
+    if (Array.isArray(result)) {
+      rawText = result[0].generated_text;
+    } else if (result.generated_text) {
+      rawText = result.generated_text;
+    } else if (result[0] && result[0].generated_text) {
+      rawText = result[0].generated_text;
+    } else {
+      console.error('Unexpected response format:', result);
+      throw new Error('Unexpected API response format');
+    }
+
+    console.log('📝 StretchGPT V3 Generated Text:', rawText);
+
+    // Parse JSON from response
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.error('No JSON found in response:', rawText);
+      throw new Error('No JSON found in model response');
+    }
+    
+    const routineData = JSON.parse(jsonMatch[0]);
+    console.log('✨ StretchGPT V3 Parsed Routine:', routineData);
+    
+    // Add videoSearchQuery to each exercise
+    if (routineData.phases) {
+      routineData.phases.forEach(phase => {
+        phase.exercises.forEach(exercise => {
+          exercise.videoSearchQuery = `${exercise.name} ${exercise.target || ''} stretch tutorial`.trim();
+        });
+      });
+    }
+
+    return routineData;
+    
+  } catch (error) {
+    console.error('❌ StretchGPT V3 Error:', error);
+    throw error;
+  }
 }
+
+// Map Limbraapp body parts to V3 target areas
+function mapBodyPartsToV3Target(bodyParts) {
+  const mapping = {
+    'neck': 'Neck/Shoulders',
+    'shoulders': 'Neck/Shoulders',
+    'upper_back': 'Posterior Chain',
+    'lower_back': 'Posterior Chain',
+    'chest': 'Anterior Chain',
+    'arms': 'Anterior Chain',
+    'hips': 'Lateral Chain',
+    'legs': 'Posterior Chain',
+    'calves': 'Posterior Chain',
+    'full_body': 'Posterior Chain'
+  };
+  
+  // Get unique V3 targets
+  const targets = [...new Set(bodyParts.map(bp => mapping[bp] || 'Posterior Chain'))];
+  return targets[0] || 'Posterior Chain'; // V3 expects single target
+}
+
+// ============================================
+// FLATTEN V3 PHASES TO EXERCISE LIST
+// ============================================
+
+export function flattenV3Routine(v3Routine) {
+  const exercises = [];
+  
+  if (v3Routine.phases) {
+    v3Routine.phases.forEach(phase => {
+      phase.exercises.forEach(ex => {
+        exercises.push({
+          name: ex.name,
+          duration: ex.duration || 45,
+          description: `${phase.phaseName} exercise: ${ex.type} stretch for ${ex.target}`,
+          type: ex.type,
+          targetMuscles: [ex.target],
+          primary_muscle_groups: [ex.target],
+          intensity: ex.intensity,
+          phase: phase.phaseName,
+          videoSearchQuery: ex.videoSearchQuery || `${ex.name} stretch tutorial`,
+          reps: ex.reps || null,
+          duration_seconds: ex.duration || 45
+        });
+      });
+    });
+  }
+  
+  const totalDuration = v3Routine.estimatedDuration 
+    ? v3Routine.estimatedDuration * 60 
+    : exercises.reduce((sum, ex) => sum + (ex.duration || 45), 0);
+  
+  return {
+    routineName: v3Routine.routineName,
+    exercises: exercises,
+    totalDuration: totalDuration,
+    difficulty: v3Routine.level,
+    benefits: [
+      `Targets ${v3Routine.targetArea}`, 
+      'Improves flexibility', 
+      'Reduces muscle tension',
+      'Enhances mobility'
+    ],
+    warmupTips: [v3Routine.rationale],
+    cooldownAdvice: 'Take deep breaths and slowly return to normal activity.',
+    source: 'stretchgpt_v3',
+    // Keep original V3 structure for future phase-aware UI
+    _v3Data: v3Routine
+  };
+}
+
+// ============================================
+// MAIN AI ROUTINE GENERATOR
+// ============================================
+
+export async function generateAIRoutine(preferences) {
+  console.log('🎯 generateAIRoutine called with:', preferences);
+  
+  const aiProvider = getAIProvider();
+  console.log('🤖 AI Provider:', aiProvider);
+  
+  // Try StretchGPT V3 first if selected
+  if (aiProvider === 'stretchgpt') {
+    const hfToken = getHuggingFaceToken();
+    console.log('🔑 HuggingFace token exists:', !!hfToken, hfToken ? `(${hfToken.substring(0, 10)}...)` : '(none)');
+    
+    if (hfToken) {
+      try {
+        console.log('🚀 Using StretchGPT V3...');
+        const v3Routine = await generateStretchGPTV3Routine(preferences);
+        const flattenedRoutine = flattenV3Routine(v3Routine);
+        console.log('✅ StretchGPT V3 Success:', flattenedRoutine);
+        return flattenedRoutine;
+      } catch (error) {
+        console.error('❌ StretchGPT V3 failed:', error);
+        console.warn('⚠️ Falling back to OpenRouter:', error.message);
+        // Fall through to OpenRouter
+      }
+    } else {
+      console.warn('⚠️ No HuggingFace token, falling back to OpenRouter');
+    }
+  }
+  
+  console.log('🔄 Attempting OpenRouter...');
+  return generateOpenRouterRoutine(preferences);
+}
+
+// ============================================
+// OPENROUTER FALLBACK
+// ============================================
+
+async function generateOpenRouterRoutine(preferences) {
+  const { duration, goals, bodyParts, equipment, difficulty, energyLevel, problems } = preferences;
+  
+  // Use V3-style prompt structure for better results
+  const goalText = goals.join(', ').replace(/_/g, ' ');
+  const bodyPartsText = bodyParts.join(', ').replace(/_/g, ' ');
+  
+  const prompt = `
+Generate a personalized stretching routine with 4-phase structure (Preparation, Activation, Main, Integration).
 
 Requirements:
-- Each exercise should be 20-60 seconds
-- Include variety of movements
-- Progress from gentle to more intensive
-- Include equipment-specific exercises when equipment is available
-- Ensure total duration matches requested time
-- Make exercises appropriate for the difficulty level
-- Assign proper muscle groups based on the body parts provided
-- Set purposes that match with the goals provided
+- Duration: ${duration} seconds (${Math.round(duration / 60)} minutes)
+- Goal: ${goalText}
+- Target Areas: ${bodyPartsText}
+- Difficulty: ${difficulty}
+- Equipment: ${equipment.join(', ')}
+
+Return JSON with this EXACT structure:
+{
+  "routineName": "Creative routine name",
+  "exercises": [
+    {
+      "name": "Exercise Name",
+      "duration": 45,
+      "description": "Clear instructions",
+      "type": "Dynamic or Static",
+      "intensity": "Low, Medium, or High",
+      "target": "Primary muscle group",
+      "phase": "Preparation, Activation, Main, or Integration",
+      "videoSearchQuery": "exercise name proper form tutorial"
+    }
+  ],
+  "warmupTips": ["Tip 1", "Tip 2"],
+  "cooldownAdvice": "Brief advice"
+}
+
+CRITICAL: 
+- Progress from dynamic warm-ups to static stretches
+- Balance opposing muscle groups
+- Total exercise duration should match requested time
+- Include 8-12 exercises
+- Each exercise 20-60 seconds
 `;
 
   try {
@@ -111,7 +298,7 @@ Requirements:
     const selectedModel = getSelectedModel();
 
     if (!apiKey) {
-      throw new Error('OpenRouter API key not configured');
+      throw new Error('OpenRouter API key not configured. Please add your API key in Settings.');
     }
     
     const response = await fetch(OPENROUTER_API_URL, {
@@ -120,19 +307,16 @@ Requirements:
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': window.location.origin,
-        'X-Title': 'Stretch Easy App'
+        'X-Title': 'Limbra App'
       },
       body: JSON.stringify({
         model: selectedModel,
         messages: [
           {
             role: 'system',
-            content: 'You are a professional fitness and stretching expert. Generate safe, effective routines following the exact database format provided.'
+            content: 'You are a professional fitness and stretching expert. Generate safe, effective routines following the exact JSON format provided. Return only valid JSON.'
           },
-          {
-            role: 'user',
-            content: prompt
-          }
+          { role: 'user', content: prompt }
         ],
         temperature: 0.7,
         max_tokens: 2000
@@ -140,7 +324,7 @@ Requirements:
     });
 
     if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+      throw new Error(`OpenRouter API error: ${response.status}`);
     }
 
     const data = await response.json();
@@ -148,11 +332,15 @@ Requirements:
     
     return routineData;
   } catch (error) {
-    console.error('Error generating AI routine:', error);
+    console.error('OpenRouter error:', error);
     throw error;
   }
 }
-// Search YouTube for exercise videos
+
+// ============================================
+// YOUTUBE VIDEO LOADING
+// ============================================
+
 export async function searchYouTubeVideos(query, maxResults = 5) {
   const apiKey = getYouTubeAPIKey();
   if (!apiKey) {
@@ -173,7 +361,7 @@ export async function searchYouTubeVideos(query, maxResults = 5) {
     type: 'video',
     maxResults: maxResults,
     videoEmbeddable: true,
-    videoDuration: 'short', // Under 4 minutes
+    videoDuration: 'short',
     relevanceLanguage: 'en',
     safeSearch: 'strict',
     key: apiKey
@@ -199,30 +387,10 @@ export async function generateRoutineFromSearch(searchQuery, preferences) {
   const { duration, difficulty = 'intermediate' } = preferences;
   
   const prompt = `
-I need a stretching routine focused on "${searchQuery}". Please create a personalized routine based on this search.
+I need a stretching routine focused on "${searchQuery}". Please create a personalized routine.
 
 Duration: ${duration} seconds (${Math.round(duration / 60)} minutes)
 Difficulty Level: ${difficulty}
-
-Please follow the exact database format that we use in our app. Here's an example of our exercise format:
-
-{
-  "exercise_id": "generated_001",
-  "name": "Standing Hamstring Stretch",
-  "description": "Stand tall with one heel on a slightly elevated surface. Keep your leg straight but not locked. Hinge forward at your hips, keeping your back straight, until you feel a stretch in the back of your thigh. Hold for the recommended duration.",
-  "type": "Static",
-  "primary_muscle_groups": ["Hamstrings"],
-  "secondary_muscle_groups": ["Glutes", "Calves"],
-  "purpose": ["Flexibility", "Cool-down"],
-  "equipment_needed": true,
-  "equipment_details": ["Elevated Surface (step, low bench)"],
-  "difficulty_level": "Beginner",
-  "duration_seconds": 30,
-  "repetitions": 1,
-  "sets": 2,
-  "video_url": null,
-  "cautions": "Avoid rounding your back. Do not lock your knee."
-}
 
 Please provide a JSON response with exactly this structure:
 {
@@ -235,9 +403,9 @@ Please provide a JSON response with exactly this structure:
       "type": "Static or Dynamic",
       "primary_muscle_groups": ["Primary muscles"],
       "secondary_muscle_groups": ["Secondary muscles"],
-      "purpose": ["Flexibility", "Warm-up", or other relevant purposes],
-      "equipment_needed": boolean,
-      "equipment_details": ["Equipment details if needed"],
+      "purpose": ["Flexibility", "Warm-up", or other relevant purposes"],
+      "equipment_needed": false,
+      "equipment_details": [],
       "difficulty_level": "${difficulty}",
       "duration_seconds": 30,
       "repetitions": 1,
@@ -248,15 +416,7 @@ Please provide a JSON response with exactly this structure:
   ],
   "warmupTips": ["3-5 general tips related to ${searchQuery}"],
   "cooldownAdvice": "Brief cooldown advice"
-}
-
-Requirements:
-- Create exercises that specifically target ${searchQuery} related stretches
-- Each exercise should be 20-60 seconds
-- Include variety of movements
-- Ensure total duration matches requested time
-- Make exercises appropriate for the difficulty level
-`;
+}`;
 
   try {
     const apiKey = getOpenRouterAPIKey();
@@ -272,19 +432,16 @@ Requirements:
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': window.location.origin,
-        'X-Title': 'Stretch Easy App'
+        'X-Title': 'Limbra App'
       },
       body: JSON.stringify({
         model: selectedModel,
         messages: [
           {
             role: 'system',
-            content: 'You are a professional fitness and stretching expert. Generate safe, effective routines following the exact database format provided, focused on the specific search query.'
+            content: 'You are a professional fitness and stretching expert. Generate safe, effective routines following the exact format provided.'
           },
-          {
-            role: 'user',
-            content: prompt
-          }
+          { role: 'user', content: prompt }
         ],
         temperature: 0.7,
         max_tokens: 2000
@@ -311,25 +468,41 @@ export async function loadExerciseVideos(exercises) {
   
   for (const exercise of exercises) {
     try {
-      if (exercise.videoSearchQuery || exercise.name) {
-        const videos = await searchYouTubeVideos(exercise.videoSearchQuery || exercise.name, 3);
-        
-        if (videos.length > 0) {
-          exercise.videoId = videos[0].id.videoId;
-          exercise.videoTitle = videos[0].snippet.title;
-          exercise.channelTitle = videos[0].snippet.channelTitle;
+      // Defensive Video Fetching: Always add exercise, only attempt video if API configured
+      const youtubeApiKey = getYouTubeAPIKey();
+      
+      if (youtubeApiKey && (exercise.videoSearchQuery || exercise.name)) {
+        try {
+          const searchQuery = exercise.videoSearchQuery || `${exercise.name} stretch tutorial`;
+          const videos = await searchYouTubeVideos(searchQuery, 3);
+          
+          if (videos.length > 0) {
+            exercise.videoId = videos[0].id.videoId;
+            exercise.videoTitle = videos[0].snippet.title;
+            exercise.channelTitle = videos[0].snippet.channelTitle;
+          }
+        } catch (videoError) {
+          // Catch video-specific errors but don't break the routine
+          console.warn(`YouTube API failed for ${exercise.name}, using placeholder:`, videoError);
+          exercise.videoId = null; // Explicitly set to null for placeholder
         }
       }
+      
       exercisesWithVideos.push(exercise);
     } catch (error) {
-      console.error(`Error loading video for ${exercise.name}:`, error);
+      console.error(`Error processing exercise ${exercise.name}:`, error);
+      // CRITICAL: Always push exercise even if processing fails
       exercisesWithVideos.push(exercise);
     }
   }
   
   return exercisesWithVideos;
 }
-// Equipment descriptions
+
+// ============================================
+// EQUIPMENT INFO
+// ============================================
+
 export const EQUIPMENT_INFO = {
   [EQUIPMENT_TYPES.NONE]: {
     name: 'No Equipment',
