@@ -32,6 +32,9 @@ function App() {
 
   useEffect(() => {
     const handler = (e) => {
+      // Clear any overlays when navigating
+      setShowCompletionNotification(false)
+      
       if (e.detail === 'home') {
         setShowAPIConfig(false)
         setCurrentScreen('preferences')
@@ -112,6 +115,7 @@ function App() {
   }
 
   const handleStartNew = () => {
+    setShowCompletionNotification(false)
     setCurrentScreen('preferences')
     setRoutine(null)  
     setPreferences(null)
@@ -179,7 +183,7 @@ function App() {
           />
         )}
 
-        {currentScreen === 'routine' && routine && (
+        {!showAPIConfig && currentScreen === 'routine' && routine && (
           <RoutineDisplay
             routine={routine}
             preferences={preferences}
@@ -189,7 +193,7 @@ function App() {
           />
         )}
 
-        {showCompletionNotification && (
+        {!showAPIConfig && showCompletionNotification && (
           <div className="session-complete">
             <button 
               className="back-button" 
@@ -240,19 +244,19 @@ function App() {
 
         {/* Navigation Bar - always visible */}
         <nav className="nav-bar">
-          <button className={`nav-item${currentScreen === 'preferences' ? ' nav-item-active' : ''}`} onClick={() => { setShowAPIConfig(false); setCurrentScreen('preferences'); }}>
+          <button className={`nav-item${currentScreen === 'preferences' ? ' nav-item-active' : ''}`} onClick={() => { setShowAPIConfig(false); setCurrentScreen('preferences'); setShowCompletionNotification(false); }}>
             <EvaIcon name="home-outline" width={24} height={24} fill={currentScreen === 'preferences' ? '#22c55e' : '#b0b8c9'} />
             <span style={{ color: currentScreen === 'preferences' ? '#22c55e' : '#b0b8c9' }}>Home</span>
           </button>
-          <button className={`nav-item${currentScreen === 'saved' ? ' nav-item-active' : ''}`} onClick={() => { setShowAPIConfig(false); setCurrentScreen('saved'); }}>
+          <button className={`nav-item${currentScreen === 'saved' ? ' nav-item-active' : ''}`} onClick={() => { setShowAPIConfig(false); setCurrentScreen('saved'); setShowCompletionNotification(false); }}>
             <EvaIcon name="bookmark-outline" width={24} height={24} fill={currentScreen === 'saved' ? '#22c55e' : '#b0b8c9'} />
             <span style={{ color: currentScreen === 'saved' ? '#22c55e' : '#b0b8c9' }}>Library</span>
           </button>
-          <button className={`nav-item${currentScreen === 'profile' ? ' nav-item-active' : ''}`} onClick={() => { setShowAPIConfig(false); setCurrentScreen('profile'); }}>
+          <button className={`nav-item${currentScreen === 'profile' ? ' nav-item-active' : ''}`} onClick={() => { setShowAPIConfig(false); setCurrentScreen('profile'); setShowCompletionNotification(false); }}>
             <EvaIcon name="person-outline" width={24} height={24} fill={currentScreen === 'profile' ? '#22c55e' : '#b0b8c9'} />
             <span style={{ color: currentScreen === 'profile' ? '#22c55e' : '#b0b8c9' }}>Profile</span>
           </button>
-          <button className={`nav-item${showAPIConfig ? ' nav-item-active' : ''}`} onClick={() => { setShowAPIConfig(true); }}>
+          <button className={`nav-item${showAPIConfig ? ' nav-item-active' : ''}`} onClick={() => { setShowAPIConfig(true); setShowCompletionNotification(false); }}>
             <EvaIcon name="settings-outline" width={24} height={24} fill={showAPIConfig ? '#22c55e' : '#b0b8c9'} />
             <span style={{ color: showAPIConfig ? '#22c55e' : '#b0b8c9' }}>Settings</span>
           </button>

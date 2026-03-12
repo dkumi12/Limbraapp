@@ -1,0 +1,17 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "bedrock:InvokeModel",
+        "bedrock:InvokeModelWithResponseStream"
+      ],
+      "Resource": [
+        "arn:aws:bedrock:*::foundation-model/mistral.mistral-small*",
+        "arn:aws:bedrock:*::foundation-model/meta.llama*",
+        "arn:aws:bedrock:*::foundation-model/anthropic.claude*"
+      ]
+    }
+  ]
+}

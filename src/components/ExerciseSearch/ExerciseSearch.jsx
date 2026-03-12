@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { generateRoutineFromSearch } from '../../services/api';
+import { generateRoutineFromSearch, loadExerciseVideos } from '../../services/api';
 import EvaIcon from '../EvaIcon';
 
 const ExerciseSearch = ({ onGenerateRoutine, defaultDuration = 10, defaultDifficulty = 'intermediate' }) => {
@@ -22,8 +22,10 @@ const ExerciseSearch = ({ onGenerateRoutine, defaultDuration = 10, defaultDiffic
     'sciatica relief'
   ];
 
-  const handleSearch = async () => {
-    if (!searchTerm.trim()) {
+  const handleSearch = async (searchQuery) => {
+    const queryToUse = typeof searchQuery === 'string' ? searchQuery : searchTerm;
+
+    if (!queryToUse.trim()) {
       setSearchError('Please enter a search term');
       return;
     }
@@ -32,15 +34,13 @@ const ExerciseSearch = ({ onGenerateRoutine, defaultDuration = 10, defaultDiffic
     setSearchError('');
     
     try {
-      const routine = await generateRoutineFromSearch(searchTerm, {
+      const routine = await generateRoutineFromSearch(queryToUse, {
         duration: duration * 60, // Convert to seconds
         difficulty
       });
       
-      // Format the routine to match the expected structure from routineGenerator
-      const formattedRoutine = {
-        name: routine.routineName,
-        exercises: routine.exercises.map(ex => ({
+      // First construct basic exercises
+      const mappedExercises = routine.exercises.map(ex => ({
           name: ex.name,
           duration: ex.duration_seconds,
           description: ex.description,
@@ -48,8 +48,16 @@ const ExerciseSearch = ({ onGenerateRoutine, defaultDuration = 10, defaultDiffic
           targetMuscles: ex.primary_muscle_groups,
           benefits: ex.purpose.map(p => `Improves ${p}`),
           tips: ex.cautions,
-          videoSearchQuery: ex.name
-        })),
+          videoSearchQuery: ex.videoSearchQuery || ex.name
+      }));
+
+      // Load videos for them
+      const exercisesWithVideos = await loadExerciseVideos(mappedExercises);
+
+      // Format the routine to match the expected structure from routineGenerator
+      const formattedRoutine = {
+        name: routine.routineName,
+        exercises: exercisesWithVideos,
         totalDuration: routine.exercises.reduce((sum, ex) => sum + ex.duration_seconds, 0),
         difficulty: difficulty,
         benefits: [...new Set(routine.exercises.flatMap(ex => ex.purpose))].map(p => `Improves ${p}`),
@@ -57,7 +65,7 @@ const ExerciseSearch = ({ onGenerateRoutine, defaultDuration = 10, defaultDiffic
         cooldownAdvice: routine.cooldownAdvice,
         isFallback: false,
         source: 'search',
-        searchTerm: searchTerm
+        searchTerm: queryToUse
       };
       
       onGenerateRoutine(formattedRoutine);
@@ -73,7 +81,7 @@ const ExerciseSearch = ({ onGenerateRoutine, defaultDuration = 10, defaultDiffic
     setSearchTerm(term);
     // Auto-search after a short delay to give user time to see what was selected
     setTimeout(() => {
-      handleSearch();
+      handleSearch(term);
     }, 300);
   };
 
@@ -92,10 +100,16 @@ const ExerciseSearch = ({ onGenerateRoutine, defaultDuration = 10, defaultDiffic
           placeholder="e.g., lower back pain, neck tension, hip mobility..."
           className="form-input"
           style={{ paddingRight: '3rem' }}
-          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleSearch();
+            }
+          }}
         />
         <button
-          onClick={handleSearch}
+          type="button"
+          onClick={() => handleSearch()}
           style={{
             position: 'absolute',
             right: '0.5rem',
@@ -152,6 +166,7 @@ const ExerciseSearch = ({ onGenerateRoutine, defaultDuration = 10, defaultDiffic
           {popularSearches.map((term) => (
             <button
               key={term}
+              type="button"
               onClick={() => handlePopularSearch(term)}
               style={{
                 background: '#1a2031',
@@ -181,7 +196,8 @@ const ExerciseSearch = ({ onGenerateRoutine, defaultDuration = 10, defaultDiffic
       </div>
       
       <button
-        onClick={handleSearch}
+        type="button"
+        onClick={() => handleSearch()}
         className="btn"
         style={{ marginTop: '1.5rem' }}
         disabled={isGenerating || !searchTerm.trim()}

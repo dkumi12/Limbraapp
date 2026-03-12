@@ -5,6 +5,10 @@ const Settings = ({ onClose }) => {
   const [openRouterKey, setOpenRouterKey] = useState('')
   const [youtubeKey, setYoutubeKey] = useState('')
   const [hfToken, setHfToken] = useState('')
+  const [awsAccessKey, setAwsAccessKey] = useState('')
+  const [awsSecretKey, setAwsSecretKey] = useState('')
+  const [awsRegion, setAwsRegion] = useState('')
+  const [awsModelId, setAwsModelId] = useState('')
   const [selectedModel, setSelectedModel] = useState('')
   const [aiProvider, setAiProvider] = useState('stretchgpt')
   const [availableModels, setAvailableModels] = useState([])
@@ -27,12 +31,20 @@ const Settings = ({ onClose }) => {
     const savedOpenRouterKey = localStorage.getItem('openrouter_api_key') || ''
     const savedYoutubeKey = localStorage.getItem('youtube_api_key') || ''
     const savedHfToken = localStorage.getItem('hf_access_token') || ''
+    const savedAwsAccessKey = localStorage.getItem('aws_access_key') || ''
+    const savedAwsSecretKey = localStorage.getItem('aws_secret_key') || ''
+    const savedAwsRegion = localStorage.getItem('aws_region') || 'us-east-1'
+    const savedAwsModelId = localStorage.getItem('aws_model_id') || 'mistral.mistral-small-2402-v1:0'
     const savedModel = localStorage.getItem('selected_model') || 'anthropic/claude-3-haiku'
     const savedProvider = localStorage.getItem('ai_provider') || 'stretchgpt'
     
     setOpenRouterKey(savedOpenRouterKey)
     setYoutubeKey(savedYoutubeKey)
     setHfToken(savedHfToken)
+    setAwsAccessKey(savedAwsAccessKey)
+    setAwsSecretKey(savedAwsSecretKey)
+    setAwsRegion(savedAwsRegion)
+    setAwsModelId(savedAwsModelId)
     setSelectedModel(savedModel)
     setAiProvider(savedProvider)
     
@@ -97,6 +109,16 @@ const Settings = ({ onClose }) => {
     } else {
       localStorage.removeItem('hf_access_token')
     }
+
+    // Save AWS Bedrock credentials
+    if (awsAccessKey) localStorage.setItem('aws_access_key', awsAccessKey)
+    else localStorage.removeItem('aws_access_key')
+    
+    if (awsSecretKey) localStorage.setItem('aws_secret_key', awsSecretKey)
+    else localStorage.removeItem('aws_secret_key')
+    
+    if (awsRegion) localStorage.setItem('aws_region', awsRegion)
+    if (awsModelId) localStorage.setItem('aws_model_id', awsModelId)
     
     // Save AI provider preference
     localStorage.setItem('ai_provider', aiProvider)
@@ -210,7 +232,7 @@ const Settings = ({ onClose }) => {
         {/* AI Provider Selection */}
         <div className="settings-card">
           <h2 className="settings-section-title">🤖 AI Provider</h2>
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
             <button
               className={`settings-btn ${aiProvider === 'stretchgpt' ? 'settings-btn-primary' : 'settings-btn-secondary'}`}
               onClick={() => setAiProvider('stretchgpt')}
@@ -229,15 +251,26 @@ const Settings = ({ onClose }) => {
               <br />
               <small style={{ opacity: 0.8 }}>GPT-4, Claude, etc.</small>
             </button>
+            <button
+              className={`settings-btn ${aiProvider === 'bedrock' ? 'settings-btn-primary' : 'settings-btn-secondary'}`}
+              onClick={() => setAiProvider('bedrock')}
+              style={{ flex: 1, padding: '1rem', textAlign: 'center' }}
+            >
+              <strong>AWS Bedrock</strong>
+              <br />
+              <small style={{ opacity: 0.8 }}>Mistral AI Models</small>
+            </button>
           </div>
           <p className="settings-hint" style={{ 
-            background: aiProvider === 'stretchgpt' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(59, 130, 246, 0.1)',
+            background: aiProvider === 'stretchgpt' ? 'rgba(34, 197, 94, 0.1)' : aiProvider === 'bedrock' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(59, 130, 246, 0.1)',
             padding: '0.75rem',
             borderRadius: '8px',
             marginTop: '0.5rem'
           }}>
             {aiProvider === 'stretchgpt' 
               ? '✅ Using your fine-tuned StretchGPT model (faster, cheaper, specialized for stretching)'
+              : aiProvider === 'bedrock'
+              ? '☁️ Using AWS Bedrock (enterprise security, efficient models like Mistral Small)'
               : '☁️ Using cloud AI via OpenRouter (more variety, requires API key and credits)'
             }
           </p>
@@ -343,6 +376,56 @@ const Settings = ({ onClose }) => {
                   )
                 )}
               </select>
+            </div>
+          </div>
+        )}
+
+        {/* AWS Bedrock Configuration (shown when Bedrock selected) */}
+        {aiProvider === 'bedrock' && (
+          <div className="settings-card">
+            <h2 className="settings-section-title">☁️ AWS Bedrock Configuration</h2>
+            <div className="form-group">
+              <label className="form-label">AWS Access Key ID</label>
+              <input
+                type="text"
+                className="settings-input"
+                value={awsAccessKey}
+                onChange={(e) => setAwsAccessKey(e.target.value)}
+                placeholder="AKIA..."
+              />
+            </div>
+            <div className="form-group" style={{ marginTop: '1rem' }}>
+              <label className="form-label">AWS Secret Access Key</label>
+              <input
+                type="password"
+                className="settings-input"
+                value={awsSecretKey}
+                onChange={(e) => setAwsSecretKey(e.target.value)}
+                placeholder="..."
+              />
+            </div>
+            <div className="form-group" style={{ marginTop: '1rem' }}>
+              <label className="form-label">AWS Region</label>
+              <input
+                type="text"
+                className="settings-input"
+                value={awsRegion}
+                onChange={(e) => setAwsRegion(e.target.value)}
+                placeholder="us-east-1"
+              />
+            </div>
+            <div className="form-group" style={{ marginTop: '1rem' }}>
+              <label className="form-label">Model ID</label>
+              <input
+                type="text"
+                className="settings-input"
+                value={awsModelId}
+                onChange={(e) => setAwsModelId(e.target.value)}
+                placeholder="mistral.mistral-small-2402-v1:0"
+              />
+              <p className="settings-hint" style={{ marginTop: '0.5rem', wordBreak: 'break-all' }}>
+                Common models: <code>mistral.mistral-small-2402-v1:0</code>, <code>meta.llama3-8b-instruct-v1:0</code>, <code>anthropic.claude-3-haiku-20240307-v1:0</code>
+              </p>
             </div>
           </div>
         )}

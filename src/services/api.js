@@ -1,5 +1,6 @@
 // src/services/api.js
 // Updated for StretchGPT V3 Integration
+import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
 
 // ============================================
 // API CONFIGURATION
@@ -24,6 +25,11 @@ const getSelectedModel = () => {
 const getAIProvider = () => {
   return localStorage.getItem('ai_provider') || 'stretchgpt';
 }
+
+const getAwsAccessKey = () => localStorage.getItem('aws_access_key') || '';
+const getAwsSecretKey = () => localStorage.getItem('aws_secret_key') || '';
+const getAwsRegion = () => localStorage.getItem('aws_region') || 'us-east-1';
+const getAwsModelId = () => localStorage.getItem('aws_model_id') || 'mistral.mistral-small-2402-v1:0';
 
 // API Endpoints
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
@@ -210,6 +216,161 @@ export function flattenV3Routine(v3Routine) {
 }
 
 // ============================================
+// AWS BEDROCK INTEGRATION
+// ============================================
+
+async function generateBedrockRoutine(preferences) {
+  const accessKeyId = getAwsAccessKey();
+  const secretAccessKey = getAwsSecretKey();
+  const region = getAwsRegion();
+  const modelId = getAwsModelId();
+
+  if (!accessKeyId || !secretAccessKey) {
+    throw new Error('AWS Bedrock credentials not configured. Please add them in Settings.');
+  }
+
+  const { duration, goals, bodyParts, equipment, difficulty } = preferences;
+  const goalText = goals.join(', ').replace(/_/g, ' ');
+  const bodyPartsText = bodyParts.join(', ').replace(/_/g, ' ');
+
+  const prompt = `
+Generate a personalized stretching routine with 4-phase structure (Preparation, Activation, Main, Integration).
+
+Requirements:
+- Duration: ${duration} seconds (${Math.round(duration / 60)} minutes)
+- Goal: ${goalText}
+- Target Areas: ${bodyPartsText}
+- Difficulty: ${difficulty}
+- Equipment: ${equipment.join(', ')}
+
+Return JSON with this EXACT structure:
+{
+  "routineName": "Creative routine name",
+  "exercises": [
+    {
+      "name": "Exercise Name",
+      "duration": 45,
+      "description": "Clear instructions",
+      "type": "Dynamic or Static",
+      "intensity": "Low, Medium, or High",
+      "target": "Primary muscle group",
+      "phase": "Preparation, Activation, Main, or Integration",
+      "videoSearchQuery": "exercise name proper form tutorial"
+    }
+  ],
+  "warmupTips": ["Tip 1", "Tip 2"],
+  "cooldownAdvice": "Brief advice"
+}
+
+CRITICAL: 
+- Progress from dynamic warm-ups to static stretches
+- Balance opposing muscle groups
+- Total exercise duration should match requested time
+- Include 8-12 exercises
+- Each exercise 20-60 seconds
+Return ONLY valid JSON.
+`;
+
+  try {
+    const client = new BedrockRuntimeClient({
+      region: region,
+      credentials: {
+        accessKeyId: accessKeyId,
+        secretAccessKey: secretAccessKey,
+      },
+    });
+
+    let payload = {};
+    if (modelId.includes('claude-3')) {
+      payload = {
+        anthropic_version: "bedrock-2023-05-31",
+        max_tokens: 2000,
+        temperature: 0.7,
+        messages: [
+          {
+            role: "user",
+            content: [{ type: "text", text: prompt }]
+          }
+        ]
+      };
+    } else if (modelId.includes('mistral')) {
+      payload = {
+        prompt: `<s>[INST] ${prompt} [/INST]`,
+        max_tokens: 2000,
+        temperature: 0.7
+      };
+    } else if (modelId.includes('llama3') || modelId.includes('meta')) {
+      payload = {
+        prompt: `<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n${prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n`,
+        temperature: 0.7,
+        top_p: 0.9,
+        max_gen_len: 2000
+      };
+    } else {
+      payload = {
+        prompt: `\n\nHuman: ${prompt}\n\nAssistant:`,
+        max_tokens_to_sample: 2000,
+        temperature: 0.7,
+      };
+    }
+
+    const command = new InvokeModelCommand({
+      modelId: modelId,
+      contentType: "application/json",
+      accept: "application/json",
+      body: JSON.stringify(payload),
+    });
+
+    const response = await client.send(command);
+    const responseBody = JSON.parse(new TextDecoder().decode(response.body));
+
+    let responseText = "";
+    if (modelId.includes('claude-3')) {
+      responseText = responseBody.content[0].text;
+    } else if (modelId.includes('mistral')) {
+      responseText = responseBody.outputs[0].text;
+    } else if (modelId.includes('llama3') || modelId.includes('meta')) {
+      responseText = responseBody.generation;
+    } else {
+      responseText = responseBody.completion;
+    }
+
+    const jsonMatch = responseText.match(/[\{\[][\s\S]*[\}\]]/);
+    if (!jsonMatch) {
+      throw new Error('No JSON found in model response');
+    }
+
+    let parsedData = JSON.parse(jsonMatch[0]);
+    
+    // Normalize response to always have valid structure and number durations
+    if (Array.isArray(parsedData)) {
+      parsedData = {
+        routineName: preferences.goals[0]?.replace(/_/g, ' ') || 'Custom Routine',
+        exercises: parsedData,
+        warmupTips: ["Move slowly", "Breathe deeply"],
+        cooldownAdvice: "Rest for a few minutes after finishing."
+      };
+    }
+
+    // Ensure all exercises have proper formatting
+    if (parsedData.exercises && Array.isArray(parsedData.exercises)) {
+      parsedData.exercises = parsedData.exercises.map(ex => ({
+        ...ex,
+        name: ex.name || ex.exercise_name || 'Stretching Exercise',
+        duration: parseInt(ex.duration) || 45,
+        description: ex.description || ex.instructions || 'Follow the video instructions carefully.',
+        videoSearchQuery: ex.videoSearchQuery || `${ex.name || 'stretching'} stretch tutorial`
+      }));
+    }
+
+    return parsedData;
+  } catch (error) {
+    console.error('Bedrock error:', error);
+    throw error;
+  }
+}
+
+// ============================================
 // MAIN AI ROUTINE GENERATOR
 // ============================================
 
@@ -218,6 +379,19 @@ export async function generateAIRoutine(preferences) {
   
   const aiProvider = getAIProvider();
   console.log('🤖 AI Provider:', aiProvider);
+
+  if (aiProvider === 'bedrock') {
+    try {
+      console.log('🚀 Using AWS Bedrock...');
+      const bedrockRoutine = await generateBedrockRoutine(preferences);
+      console.log('✅ AWS Bedrock Success:', bedrockRoutine);
+      return bedrockRoutine;
+    } catch (error) {
+      console.error('❌ AWS Bedrock failed:', error);
+      console.warn('⚠️ Falling back to OpenRouter:', error.message);
+      // Fall through to OpenRouter
+    }
+  }
   
   // Try StretchGPT V3 first if selected
   if (aiProvider === 'stretchgpt') {
@@ -348,33 +522,47 @@ export async function searchYouTubeVideos(query, maxResults = 5) {
     return [];
   }
   
-  // Enhance query for better relevance
-  let enhancedQuery = query;
-  if (!query.toLowerCase().includes('stretch') && !query.toLowerCase().includes('exercise')) {
-    enhancedQuery = `${query} stretch`;
+  // Enhance query for better relevance and remove special characters
+  let enhancedQuery = query.replace(/[()\[\]{}]/g, '').trim();
+  
+  const lowerQuery = enhancedQuery.toLowerCase();
+  if (!lowerQuery.includes('stretch') && !lowerQuery.includes('exercise') && !lowerQuery.includes('tutorial')) {
+    enhancedQuery = `${enhancedQuery} stretch tutorial`;
+  } else if (!lowerQuery.includes('tutorial') && !lowerQuery.includes('demonstration')) {
+    // If it has "stretch" but not "tutorial", add tutorial to get better instructional videos
+    enhancedQuery = `${enhancedQuery} tutorial`;
   }
+  
   console.log('YouTube Search Query:', enhancedQuery);
 
-  const params = new URLSearchParams({
-    part: 'snippet',
-    q: enhancedQuery,
-    type: 'video',
-    maxResults: maxResults,
-    videoEmbeddable: true,
-    videoDuration: 'short',
-    relevanceLanguage: 'en',
-    safeSearch: 'strict',
-    key: apiKey
-  });
+  const fetchWithParams = async (durationConstraint) => {
+    const params = new URLSearchParams({
+      part: 'snippet',
+      q: enhancedQuery,
+      type: 'video',
+      maxResults: maxResults,
+      videoEmbeddable: true,
+      ...(durationConstraint ? { videoDuration: durationConstraint } : {}),
+      relevanceLanguage: 'en',
+      safeSearch: 'strict',
+      key: apiKey
+    });
+
+    const response = await fetch(`${YOUTUBE_API_URL}?${params}`);
+    if (!response.ok) throw new Error(`YouTube API error: ${response.status}`);
+    return await response.json();
+  };
 
   try {
-    const response = await fetch(`${YOUTUBE_API_URL}?${params}`);
+    // Try short videos first
+    let data = await fetchWithParams('short');
     
-    if (!response.ok) {
-      throw new Error(`YouTube API error: ${response.status}`);
+    // If no short videos are found, fall back to any duration
+    if (!data.items || data.items.length === 0) {
+      console.log(`No short videos found for "${enhancedQuery}", retrying without duration constraint...`);
+      data = await fetchWithParams(null);
     }
 
-    const data = await response.json();
     return data.items || [];
   } catch (error) {
     console.error('Error searching YouTube:', error);
@@ -403,7 +591,7 @@ Please provide a JSON response with exactly this structure:
       "type": "Static or Dynamic",
       "primary_muscle_groups": ["Primary muscles"],
       "secondary_muscle_groups": ["Secondary muscles"],
-      "purpose": ["Flexibility", "Warm-up", or other relevant purposes"],
+      "purpose": ["Flexibility", "Warm-up", "or other relevant purposes"],
       "equipment_needed": false,
       "equipment_details": [],
       "difficulty_level": "${difficulty}",
@@ -419,42 +607,106 @@ Please provide a JSON response with exactly this structure:
 }`;
 
   try {
-    const apiKey = getOpenRouterAPIKey();
-    const selectedModel = getSelectedModel();
+    const aiProvider = getAIProvider();
+    let responseText = "";
 
-    if (!apiKey) {
-      throw new Error('OpenRouter API key not configured');
+    if (aiProvider === 'bedrock') {
+      const accessKeyId = getAwsAccessKey();
+      const secretAccessKey = getAwsSecretKey();
+      const region = getAwsRegion();
+      const modelId = getAwsModelId();
+
+      if (!accessKeyId || !secretAccessKey) {
+        throw new Error('AWS Bedrock credentials not configured. Please add them in Settings.');
+      }
+
+      const client = new BedrockRuntimeClient({
+        region: region,
+        credentials: {
+          accessKeyId: accessKeyId,
+          secretAccessKey: secretAccessKey,
+        },
+      });
+
+      let payload = {};
+      if (modelId.includes('claude-3')) {
+        payload = {
+          anthropic_version: "bedrock-2023-05-31",
+          max_tokens: 2000,
+          temperature: 0.7,
+          messages: [{ role: "user", content: [{ type: "text", text: prompt }] }]
+        };
+      } else if (modelId.includes('mistral')) {
+        payload = { prompt: `<s>[INST] ${prompt} [/INST]`, max_tokens: 2000, temperature: 0.7 };
+      } else if (modelId.includes('llama3') || modelId.includes('meta')) {
+        payload = { prompt: `<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n${prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n`, temperature: 0.7, top_p: 0.9, max_gen_len: 2000 };
+      } else {
+        payload = { prompt: `\n\nHuman: ${prompt}\n\nAssistant:`, max_tokens_to_sample: 2000, temperature: 0.7 };
+      }
+
+      const command = new InvokeModelCommand({
+        modelId: modelId,
+        contentType: "application/json",
+        accept: "application/json",
+        body: JSON.stringify(payload),
+      });
+
+      const response = await client.send(command);
+      const responseBody = JSON.parse(new TextDecoder().decode(response.body));
+
+      if (modelId.includes('claude-3')) {
+        responseText = responseBody.content[0].text;
+      } else if (modelId.includes('mistral')) {
+        responseText = responseBody.outputs[0].text;
+      } else if (modelId.includes('llama3') || modelId.includes('meta')) {
+        responseText = responseBody.generation;
+      } else {
+        responseText = responseBody.completion;
+      }
+    } else {
+      const apiKey = getOpenRouterAPIKey();
+      const selectedModel = getSelectedModel();
+
+      if (!apiKey) {
+        throw new Error('OpenRouter API key not configured');
+      }
+      
+      const response = await fetch(OPENROUTER_API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': window.location.origin,
+          'X-Title': 'Limbra App'
+        },
+        body: JSON.stringify({
+          model: selectedModel,
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a professional fitness and stretching expert. Generate safe, effective routines following the exact format provided.'
+            },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.7,
+          max_tokens: 2000
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      responseText = data.choices[0].message.content;
     }
-    
-    const response = await fetch(OPENROUTER_API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': window.location.origin,
-        'X-Title': 'Limbra App'
-      },
-      body: JSON.stringify({
-        model: selectedModel,
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a professional fitness and stretching expert. Generate safe, effective routines following the exact format provided.'
-          },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.7,
-        max_tokens: 2000
-      })
-    });
 
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+    const jsonMatch = responseText.match(/[\{\[][\s\S]*[\}\]]/);
+    if (!jsonMatch) {
+      throw new Error('No JSON found in model response');
     }
 
-    const data = await response.json();
-    const routineData = JSON.parse(data.choices[0].message.content);
-    
+    const routineData = JSON.parse(jsonMatch[0]);
     return routineData;
   } catch (error) {
     console.error('Error generating routine from search:', error);
@@ -464,39 +716,44 @@ Please provide a JSON response with exactly this structure:
 
 // Load videos for exercises
 export async function loadExerciseVideos(exercises) {
-  const exercisesWithVideos = [];
-  
-  for (const exercise of exercises) {
+  if (!exercises || !Array.isArray(exercises)) return [];
+
+  const youtubeApiKey = getYouTubeAPIKey();
+
+  // Run all YouTube search requests in parallel
+  const fetchVideoPromises = exercises.map(async (exercise) => {
+    // Create a copy so we don't mutate original during parallel processing
+    const ex = { ...exercise };
+    
     try {
-      // Defensive Video Fetching: Always add exercise, only attempt video if API configured
-      const youtubeApiKey = getYouTubeAPIKey();
-      
-      if (youtubeApiKey && (exercise.videoSearchQuery || exercise.name)) {
+      if (youtubeApiKey && (ex.videoSearchQuery || ex.name)) {
         try {
-          const searchQuery = exercise.videoSearchQuery || `${exercise.name} stretch tutorial`;
+          const searchQuery = ex.videoSearchQuery || `${ex.name || 'stretching'} stretch tutorial`;
           const videos = await searchYouTubeVideos(searchQuery, 3);
           
-          if (videos.length > 0) {
-            exercise.videoId = videos[0].id.videoId;
-            exercise.videoTitle = videos[0].snippet.title;
-            exercise.channelTitle = videos[0].snippet.channelTitle;
+          if (videos && videos.length > 0) {
+            ex.videoId = videos[0].id.videoId;
+            ex.videoTitle = videos[0].snippet.title;
+            ex.channelTitle = videos[0].snippet.channelTitle;
+          } else {
+            ex.videoId = null;
           }
         } catch (videoError) {
-          // Catch video-specific errors but don't break the routine
-          console.warn(`YouTube API failed for ${exercise.name}, using placeholder:`, videoError);
-          exercise.videoId = null; // Explicitly set to null for placeholder
+          console.warn(`YouTube API failed for ${ex.name}, using placeholder:`, videoError);
+          ex.videoId = null;
         }
+      } else {
+        ex.videoId = null;
       }
-      
-      exercisesWithVideos.push(exercise);
     } catch (error) {
-      console.error(`Error processing exercise ${exercise.name}:`, error);
-      // CRITICAL: Always push exercise even if processing fails
-      exercisesWithVideos.push(exercise);
+      console.error(`Error processing exercise ${ex.name}:`, error);
+      ex.videoId = null;
     }
-  }
-  
-  return exercisesWithVideos;
+    
+    return ex;
+  });
+
+  return Promise.all(fetchVideoPromises);
 }
 
 // ============================================
