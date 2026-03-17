@@ -22,7 +22,12 @@ const getSelectedModel = () => {
 };
 
 const getAIProvider = () => {
-  return import.meta.env.VITE_AI_PROVIDER || 'stretchgpt';
+  const provider = import.meta.env.VITE_AI_PROVIDER || 'stretchgpt';
+  // If provider looks like a Bedrock model ID (contains a dot), default to bedrock
+  if (provider.includes('.') || provider.includes('anthropic') || provider.includes('mistral')) {
+    return 'bedrock';
+  }
+  return provider.toLowerCase();
 };
 
 const getAwsModelId = () =>

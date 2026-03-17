@@ -49,11 +49,13 @@ const Auth = () => {
         });
         if (error) throw error;
       } else if (authState === 'forgotPassword') {
+        const resetUrl = `${window.location.origin}/`;
+        console.log('Sending reset email with redirect to:', resetUrl);
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: window.location.origin,
+          redirectTo: resetUrl,
         });
         if (error) throw error;
-        setMessage('Password reset link has been sent to your email.');
+        setMessage('Password reset link has been sent to your email. Please check your spam folder if you don\'t see it.');
       } else if (authState === 'updatePassword') {
         const { error } = await supabase.auth.updateUser({
           password: newPassword
@@ -64,7 +66,19 @@ const Auth = () => {
       }
     } catch (error) {
       console.error('Auth error:', error);
-      setError(error.message);
+      let userMessage = error.message;
+      
+      if (error.message.includes('User already registered')) {
+        userMessage = 'This email is already registered. Please sign in instead.';
+      } else if (error.message.includes('Invalid login credentials')) {
+        userMessage = 'Incorrect email or password. Please try again.';
+      } else if (error.message.includes('Password should be at least 6 characters')) {
+        userMessage = 'Password must be at least 6 characters long.';
+      } else if (error.message.includes('Email not confirmed')) {
+        userMessage = 'Please confirm your email address before signing in.';
+      }
+      
+      setError(userMessage);
     } finally {
       setLoading(false);
     }

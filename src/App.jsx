@@ -206,16 +206,20 @@ function App() {
       setRoutine(generatedRoutine);
       setCurrentScreen('routine');
 
-      // Update profile credits after successful generation
-      const deductionResult = await deductUserCredit(user.id);
-      if (deductionResult.success) {
-        console.log(
-          '💳 Credit deducted. Remaining:',
-          deductionResult.remainingCredits
-        );
-        refreshProfile();
+      // Update profile credits only after successful AI generation
+      if (generatedRoutine.source === 'ai') {
+        const deductionResult = await deductUserCredit(user.id);
+        if (deductionResult.success) {
+          console.log(
+            '💳 Credit deducted. Remaining:',
+            deductionResult.remainingCredits
+          );
+          refreshProfile();
+        } else {
+          console.warn('⚠️ Failed to deduct credit:', deductionResult.error);
+        }
       } else {
-        console.warn('⚠️ Failed to deduct credit:', deductionResult.error);
+        console.log('ℹ️ Local routine used, no credit deducted.');
       }
 
       console.log('🎉 Screen changed to routine, routine state set');
