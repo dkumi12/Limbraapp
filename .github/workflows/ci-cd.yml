@@ -136,9 +136,15 @@ jobs:
     steps:
       - name: Trigger Render deploy
         run: |
-          curl -s -X POST \
-            "https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_DEPLOY_KEY }}" \
-            | echo "Render deploy triggered"
+          response=$(curl -s -w "\n%{http_code}" -X POST "https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_DEPLOY_KEY }}")
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | head -n -1)
+          echo "HTTP Status: $http_code"
+          echo "Response Body: $body"
+          if [ "$http_code" -ne 200 ]; then
+            echo "Deployment trigger failed!"
+            exit 1
+          fi
 
   deploy-pages:
     name: Deploy to GitHub Pages
