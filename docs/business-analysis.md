@@ -2,15 +2,20 @@
 
 ## 1. Product Overview
 
-The app leverages AI to offer personalized warm-up and stretching routines based on user inputs like fitness goals, time availability, and exercise preferences. It features YouTube videos, timers, and tool recommendations.
+The app leverages AI to offer personalized warm-up and stretching routines based on user inputs like
+fitness goals, time availability, and exercise preferences. It features YouTube videos, timers, and
+tool recommendations.
 
 ## 2. Key Features
 
-- **AI-Powered Customization:** Generates routines using user inputs, ensuring a tailored experience.
-- **Content Library:** Options include YouTube integration or proprietary content, each with its own considerations for quality and control.
+- **AI-Powered Customization:** Generates routines using user inputs, ensuring a tailored
+  experience.
+- **Content Library:** Options include YouTube integration or proprietary content, each with its own
+  considerations for quality and control.
 - **Timer Functionality:** Guides users through each exercise with ease.
 - **Tool Recommendations:** Offers suggestions with potential affiliate links.
-- **User Experience:** Focuses on ease of use, with features like saving routines and tracking progress.
+- **User Experience:** Focuses on ease of use, with features like saving routines and tracking
+  progress.
 
 ## 3. Business Model Considerations
 

@@ -30,18 +30,18 @@ module.exports = {
     ],
     'react/prop-types': 'off', // We use TypeScript for prop validation
     'react/react-in-jsx-scope': 'off', // Not needed in React 17+
-    
+
     // TypeScript specific rules
     '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/prefer-const': 'error',
-    
+
     // General code quality rules
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
     'prefer-const': 'error',
     'no-var': 'error',
-    
+
     // Accessibility rules
     'jsx-a11y/alt-text': 'error',
     'jsx-a11y/anchor-is-valid': 'error',

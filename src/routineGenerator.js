@@ -4,7 +4,7 @@ import stretchingDatabase from './services/database/stretchingDatabase';
 
 export const BODY_PARTS = {
   NECK: 'neck',
-  SHOULDERS: 'shoulders', 
+  SHOULDERS: 'shoulders',
   UPPER_BACK: 'upper_back',
   LOWER_BACK: 'lower_back',
   CHEST: 'chest',
@@ -12,7 +12,7 @@ export const BODY_PARTS = {
   HIPS: 'hips',
   LEGS: 'legs',
   CALVES: 'calves',
-  FULL_BODY: 'full_body'
+  FULL_BODY: 'full_body',
 };
 
 export const GOALS = {
@@ -23,13 +23,13 @@ export const GOALS = {
   STRESS_RELIEF: 'stress_relief',
   BEDTIME_RELAX: 'bedtime_relax',
   PAIN_RELIEF: 'pain_relief',
-  FLEXIBILITY: 'flexibility'
+  FLEXIBILITY: 'flexibility',
 };
 
 export const DIFFICULTY_LEVELS = {
   BEGINNER: 'beginner',
   INTERMEDIATE: 'intermediate',
-  ADVANCED: 'advanced'
+  ADVANCED: 'advanced',
 };
 
 // Fallback exercises for when AI is unavailable
@@ -40,7 +40,7 @@ const FALLBACK_EXERCISES = {
     description: 'Gently roll your neck in circles',
     bodyParts: ['neck'],
     goals: ['desk_break', 'stress_relief'],
-    equipment: ['none']
+    equipment: ['none'],
   },
   shoulder_shrug: {
     name: 'Shoulder Shrugs',
@@ -48,7 +48,7 @@ const FALLBACK_EXERCISES = {
     description: 'Lift shoulders up to ears and release',
     bodyParts: ['shoulders'],
     goals: ['desk_break', 'stress_relief'],
-    equipment: ['none']
+    equipment: ['none'],
   },
   arm_circles: {
     name: 'Arm Circles',
@@ -56,7 +56,7 @@ const FALLBACK_EXERCISES = {
     description: 'Make circles with your arms',
     bodyParts: ['shoulders', 'arms'],
     goals: ['morning_wake_up', 'pre_workout'],
-    equipment: ['none']
+    equipment: ['none'],
   },
   cat_cow: {
     name: 'Cat-Cow Stretch',
@@ -64,7 +64,7 @@ const FALLBACK_EXERCISES = {
     description: 'Arch and round your back',
     bodyParts: ['upper_back', 'lower_back'],
     goals: ['morning_wake_up', 'flexibility'],
-    equipment: ['mat']
+    equipment: ['mat'],
   },
   forward_fold: {
     name: 'Forward Fold',
@@ -72,7 +72,7 @@ const FALLBACK_EXERCISES = {
     description: 'Bend forward to touch toes',
     bodyParts: ['lower_back', 'legs'],
     goals: ['flexibility', 'bedtime_relax'],
-    equipment: ['none']
+    equipment: ['none'],
   },
   chest_opener: {
     name: 'Chest Opener',
@@ -80,7 +80,7 @@ const FALLBACK_EXERCISES = {
     description: 'Clasp hands behind back and lift',
     bodyParts: ['chest', 'shoulders'],
     goals: ['desk_break', 'post_workout'],
-    equipment: ['none']
+    equipment: ['none'],
   },
   hip_circles: {
     name: 'Hip Circles',
@@ -88,7 +88,7 @@ const FALLBACK_EXERCISES = {
     description: 'Circle hips in both directions',
     bodyParts: ['hips'],
     goals: ['pre_workout', 'flexibility'],
-    equipment: ['none']
+    equipment: ['none'],
   },
   quad_stretch: {
     name: 'Standing Quad Stretch',
@@ -96,7 +96,7 @@ const FALLBACK_EXERCISES = {
     description: 'Hold foot behind you, 30s each leg',
     bodyParts: ['legs'],
     goals: ['pre_workout', 'post_workout'],
-    equipment: ['wall']
+    equipment: ['wall'],
   },
   calf_stretch: {
     name: 'Calf Stretch',
@@ -104,7 +104,7 @@ const FALLBACK_EXERCISES = {
     description: 'Push against wall, 30s each leg',
     bodyParts: ['calves'],
     goals: ['pre_workout', 'post_workout'],
-    equipment: ['wall']
+    equipment: ['wall'],
   },
   foam_roll_back: {
     name: 'Foam Roll Upper Back',
@@ -112,7 +112,7 @@ const FALLBACK_EXERCISES = {
     description: 'Roll slowly from mid to upper back',
     bodyParts: ['upper_back'],
     goals: ['post_workout', 'pain_relief'],
-    equipment: ['foam_roller']
+    equipment: ['foam_roller'],
   },
   lacrosse_shoulders: {
     name: 'Lacrosse Ball Shoulder Release',
@@ -120,7 +120,7 @@ const FALLBACK_EXERCISES = {
     description: 'Roll ball on tight spots, 30s each side',
     bodyParts: ['shoulders'],
     goals: ['pain_relief', 'post_workout'],
-    equipment: ['lacrosse_ball']
+    equipment: ['lacrosse_ball'],
   },
   band_chest_stretch: {
     name: 'Band Chest Stretch',
@@ -128,84 +128,117 @@ const FALLBACK_EXERCISES = {
     description: 'Hold band behind back, pull apart gently',
     bodyParts: ['chest', 'shoulders'],
     goals: ['flexibility', 'desk_break'],
-    equipment: ['resistance_band']
-  }
+    equipment: ['resistance_band'],
+  },
 };
 
 export class RoutineGenerator {
   constructor() {
     this.fallbackExercises = FALLBACK_EXERCISES;
   }
-  
+
   async generateRoutine(preferences) {
     const { equipment = ['none'] } = preferences;
-    
+
     // Ensure equipment is always an array
     const equipmentArray = Array.isArray(equipment) ? equipment : [equipment];
-    
+
     // Update preferences with equipment array
     const updatedPreferences = {
       ...preferences,
-      equipment: equipmentArray
+      equipment: equipmentArray,
     };
-    
+
     try {
       // Try AI generation first
       console.log('⚡ Attempting AI generation...');
       const aiRoutine = await generateAIRoutine(updatedPreferences);
-      
-      if (!aiRoutine || !aiRoutine.exercises || aiRoutine.exercises.length === 0) {
+
+      if (
+        !aiRoutine ||
+        !aiRoutine.exercises ||
+        aiRoutine.exercises.length === 0
+      ) {
         throw new Error('AI returned empty or invalid routine');
       }
-      
+
       console.log('🤖 AI Routine received:', aiRoutine);
-      
+
       // Defensive video loading: Don't let video errors break the routine
       let exercisesWithVideos = aiRoutine.exercises;
       try {
         exercisesWithVideos = await loadExerciseVideos(aiRoutine.exercises);
       } catch (videoError) {
-        console.warn('Video loading failed, proceeding without videos:', videoError);
+        console.warn(
+          'Video loading failed, proceeding without videos:',
+          videoError
+        );
         exercisesWithVideos = aiRoutine.exercises; // Use exercises without videos
       }
-      
+
       return {
         name: aiRoutine.routineName,
         exercises: exercisesWithVideos,
-        totalDuration: exercisesWithVideos.reduce((sum, ex) => sum + ex.duration, 0),
+        totalDuration: exercisesWithVideos.reduce(
+          (sum, ex) => sum + ex.duration,
+          0
+        ),
         difficulty: preferences.difficulty,
         benefits: this.extractBenefits(exercisesWithVideos),
         tips: aiRoutine.warmupTips || [],
         cooldownAdvice: aiRoutine.cooldownAdvice,
         isFallback: false,
-        source: 'ai'
+        source: 'ai',
       };
-      
     } catch (error) {
-      console.warn('⚠️ AI generation failed or returned invalid data. Falling back to local exercises. Error:', error.message);
+      console.warn(
+        '⚠️ AI generation failed or returned invalid data. Falling back to local exercises. Error:',
+        error.message
+      );
       // Fallback to local exercises if AI generation fails
-      const selectedExercises = Object.values(this.fallbackExercises).filter(ex => 
-        preferences.bodyParts.some(part => ex.bodyParts.includes(part)) &&
-        preferences.equipment.some(eq => ex.equipment.includes(eq))
+      const selectedExercises = Object.values(this.fallbackExercises).filter(
+        ex =>
+          preferences.bodyParts.some(part => ex.bodyParts.includes(part)) &&
+          preferences.equipment.some(eq => ex.equipment.includes(eq))
       );
 
       // If no specific fallback exercises match, or not enough, broaden the selection
-      if (selectedExercises.length < 3) { // Ensure at least 3 exercises
+      if (selectedExercises.length < 3) {
+        // Ensure at least 3 exercises
         const allFallbackExercises = Object.values(this.fallbackExercises);
         // Prioritize exercises matching body parts, then equipment, then general
-        const bodyPartMatches = allFallbackExercises.filter(ex => preferences.bodyParts.some(part => ex.bodyParts.includes(part)));
-        const equipmentMatches = allFallbackExercises.filter(ex => preferences.equipment.some(eq => ex.equipment.includes(eq)));
+        const bodyPartMatches = allFallbackExercises.filter(ex =>
+          preferences.bodyParts.some(part => ex.bodyParts.includes(part))
+        );
+        const equipmentMatches = allFallbackExercises.filter(ex =>
+          preferences.equipment.some(eq => ex.equipment.includes(eq))
+        );
 
-        let broadenedSelection = [...new Set([...bodyPartMatches, ...equipmentMatches, ...allFallbackExercises])];
+        let broadenedSelection = [
+          ...new Set([
+            ...bodyPartMatches,
+            ...equipmentMatches,
+            ...allFallbackExercises,
+          ]),
+        ];
         // Take a reasonable number of exercises, e.g., 5-7, or all if fewer
-        selectedExercises.push(...broadenedSelection.slice(0, Math.max(5, preferences.duration / 60))); // Roughly 1 exercise per minute
+        selectedExercises.push(
+          ...broadenedSelection.slice(0, Math.max(5, preferences.duration / 60))
+        ); // Roughly 1 exercise per minute
         // Ensure no duplicates and shuffle for variety
         const uniqueExercises = Array.from(new Set(selectedExercises));
         for (let i = uniqueExercises.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
-          [uniqueExercises[i], uniqueExercises[j]] = [uniqueExercises[j], uniqueExercises[i]];
+          [uniqueExercises[i], uniqueExercises[j]] = [
+            uniqueExercises[j],
+            uniqueExercises[i],
+          ];
         }
-        selectedExercises.splice(0, selectedExercises.length, ...uniqueExercises.slice(0, Math.max(5, preferences.duration / 60)));
+        selectedExercises.splice(
+          0,
+          selectedExercises.length,
+          ...uniqueExercises.slice(0, Math.max(5, preferences.duration / 60))
+        );
       }
 
       // Ensure at least one exercise if all else fails
@@ -222,62 +255,73 @@ export class RoutineGenerator {
       return {
         name: routineName,
         exercises: exercisesWithVideos,
-        totalDuration: exercisesWithVideos.reduce((sum, ex) => sum + ex.duration, 0),
+        totalDuration: exercisesWithVideos.reduce(
+          (sum, ex) => sum + ex.duration,
+          0
+        ),
         difficulty: preferences.difficulty,
         benefits: benefits,
         tips: tips,
-        cooldownAdvice: "Perform light stretches and cool down for 5-10 minutes.",
+        cooldownAdvice:
+          'Perform light stretches and cool down for 5-10 minutes.',
         isFallback: true, // This is a fallback routine
-        source: 'fallback'
+        source: 'fallback',
       };
     }
   }
-  
+
   // New method to get exercises from database
   async getDatabaseExercises(preferences) {
     try {
       // Map body parts to muscle groups
-      const muscleGroups = this.mapBodyPartsToMuscleGroups(preferences.bodyParts);
-      
+      const muscleGroups = this.mapBodyPartsToMuscleGroups(
+        preferences.bodyParts
+      );
+
       // Map goals to purposes
       const purposes = this.mapGoalsToPurposes(preferences.goals);
-      
+
       // Query exercises that match preferences
       let exercises = [];
-      
+
       // Try to get exercises for each muscle group
       for (const muscleGroup of muscleGroups) {
-        const muscleExercises = await stretchingDatabase.getExercisesByMuscleGroup(muscleGroup);
+        const muscleExercises =
+          await stretchingDatabase.getExercisesByMuscleGroup(muscleGroup);
         exercises = [...exercises, ...muscleExercises];
       }
-      
+
       // Filter by difficulty
       const difficultyLevel = this.mapDifficultyLevel(preferences.difficulty);
-      exercises = exercises.filter(ex => ex.difficulty_level === difficultyLevel);
-      
+      exercises = exercises.filter(
+        ex => ex.difficulty_level === difficultyLevel
+      );
+
       // Filter by equipment if needed
       const hasEquipment = preferences.equipment.some(eq => eq !== 'none');
       if (!hasEquipment) {
         exercises = exercises.filter(ex => !ex.equipment_needed);
       }
-      
+
       // Filter by purpose if possible
       if (purposes.length > 0) {
-        exercises = exercises.filter(ex => 
+        exercises = exercises.filter(ex =>
           ex.purpose.some(p => purposes.includes(p))
         );
       }
-      
+
       // Remove duplicates
-      const uniqueExercises = [...new Map(exercises.map(ex => [ex.exercise_id, ex])).values()];
-      
+      const uniqueExercises = [
+        ...new Map(exercises.map(ex => [ex.exercise_id, ex])).values(),
+      ];
+
       return uniqueExercises;
     } catch (error) {
       console.error('Error getting database exercises:', error);
       return [];
     }
   }
-  
+
   // Helper method to map body parts to muscle groups
   mapBodyPartsToMuscleGroups(bodyParts) {
     const mapping = {
@@ -290,12 +334,12 @@ export class RoutineGenerator {
       [BODY_PARTS.HIPS]: ['Hips', 'Hip Flexors', 'Psoas'],
       [BODY_PARTS.LEGS]: ['Quadriceps', 'Hamstrings', 'Adductors'],
       [BODY_PARTS.CALVES]: ['Calves', 'Soleus', 'Gastrocnemius'],
-      [BODY_PARTS.FULL_BODY]: ['Full Body']
+      [BODY_PARTS.FULL_BODY]: ['Full Body'],
     };
-    
+
     return bodyParts.flatMap(part => mapping[part] || []);
   }
-  
+
   // Helper method to map goals to purposes
   mapGoalsToPurposes(goals) {
     const mapping = {
@@ -306,41 +350,44 @@ export class RoutineGenerator {
       [GOALS.STRESS_RELIEF]: ['Rehabilitation'],
       [GOALS.BEDTIME_RELAX]: ['Cool-down'],
       [GOALS.PAIN_RELIEF]: ['Rehabilitation'],
-      [GOALS.FLEXIBILITY]: ['Flexibility']
+      [GOALS.FLEXIBILITY]: ['Flexibility'],
     };
-    
+
     return goals.flatMap(goal => mapping[goal] || []);
   }
-  
+
   // Helper method to map difficulty levels
   mapDifficultyLevel(difficulty) {
     const mapping = {
       [DIFFICULTY_LEVELS.BEGINNER]: 'Beginner',
       [DIFFICULTY_LEVELS.INTERMEDIATE]: 'Intermediate',
-      [DIFFICULTY_LEVELS.ADVANCED]: 'Advanced'
+      [DIFFICULTY_LEVELS.ADVANCED]: 'Advanced',
     };
-    
+
     return mapping[difficulty] || 'Beginner';
   }
-  
+
   // Helper method to select exercises for a routine based on duration
   selectExercisesForRoutine(exercises, durationSeconds, difficulty) {
     // Shuffle exercises for variety
     const shuffledExercises = [...exercises].sort(() => 0.5 - Math.random());
-    
+
     // Calculate how many exercises to include based on duration
     const avgDurationPerExercise = {
       [DIFFICULTY_LEVELS.BEGINNER]: 40,
       [DIFFICULTY_LEVELS.INTERMEDIATE]: 35,
-      [DIFFICULTY_LEVELS.ADVANCED]: 30
+      [DIFFICULTY_LEVELS.ADVANCED]: 30,
     };
-    
+
     const targetDuration = avgDurationPerExercise[difficulty] || 35;
-    const targetCount = Math.max(3, Math.floor(durationSeconds / targetDuration));
-    
+    const targetCount = Math.max(
+      3,
+      Math.floor(durationSeconds / targetDuration)
+    );
+
     // Select exercises
     const selectedExercises = shuffledExercises.slice(0, targetCount);
-    
+
     // Transform to match the expected format
     return selectedExercises.map(ex => ({
       name: ex.name,
@@ -349,32 +396,32 @@ export class RoutineGenerator {
       equipment: ex.equipment_details || [],
       targetMuscles: ex.primary_muscle_groups,
       benefits: ['Improves flexibility', 'Reduces tension'],
-      tips: ex.cautions || "Maintain proper form",
+      tips: ex.cautions || 'Maintain proper form',
       videoId: ex.video_url ? this.extractVideoId(ex.video_url) : null,
-      videoSearchQuery: ex.name
+      videoSearchQuery: ex.name,
     }));
   }
-  
+
   // Helper to extract YouTube video ID
   extractVideoId(url) {
     if (!url) return null;
-    
+
     // Handle various YouTube URL formats
     const patterns = [
       /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\?\/]+)/,
-      /youtube\.com\/watch\?.*v=([^&]+)/
+      /youtube\.com\/watch\?.*v=([^&]+)/,
     ];
-    
+
     for (const pattern of patterns) {
       const match = url.match(pattern);
       if (match && match[1]) {
         return match[1];
       }
     }
-    
+
     return null;
   }
-  
+
   generateRoutineName(goals) {
     const goalNames = {
       morning_wake_up: 'Morning Energizer',
@@ -384,12 +431,12 @@ export class RoutineGenerator {
       stress_relief: 'Stress Relief Flow',
       bedtime_relax: 'Bedtime Wind Down',
       pain_relief: 'Pain Relief Routine',
-      flexibility: 'Flexibility Flow'
+      flexibility: 'Flexibility Flow',
     };
-    
+
     return goalNames[goals[0]] || 'Custom Stretch Routine';
   }
-  
+
   extractBenefits(exercises) {
     const benefitsSet = new Set();
     exercises.forEach(ex => {
@@ -397,7 +444,7 @@ export class RoutineGenerator {
         ex.benefits.forEach(benefit => benefitsSet.add(benefit));
       }
     });
-    
+
     // Add default benefits if none from AI
     if (benefitsSet.size === 0) {
       benefitsSet.add('Improved flexibility');
@@ -405,32 +452,32 @@ export class RoutineGenerator {
       benefitsSet.add('Better posture');
       benefitsSet.add('Increased blood flow');
     }
-    
+
     return Array.from(benefitsSet).slice(0, 5);
   }
-  
+
   generateTips(preferences) {
     const tips = [];
-    
+
     if (preferences.timeOfDay === 'morning') {
       tips.push('Start gently - your body may be stiff from sleep');
     }
-    
+
     if (preferences.goals.includes('pre_workout')) {
       tips.push('Focus on dynamic movements to warm up muscles');
     }
-    
+
     if (preferences.goals.includes('post_workout')) {
       tips.push('Hold stretches longer for better recovery');
     }
-    
+
     if (preferences.difficulty === 'beginner') {
-      tips.push('Listen to your body and don\'t push too hard');
+      tips.push("Listen to your body and don't push too hard");
     }
-    
+
     tips.push('Breathe deeply throughout each stretch');
     tips.push('Move slowly and with control');
-    
+
     return tips.slice(0, 5);
   }
 }
@@ -439,29 +486,29 @@ export class RoutineGenerator {
 export const routineGenerator = new RoutineGenerator();
 
 // Helper function to get YouTube embed URL
-export const getYouTubeEmbedUrl = (videoId) => {
+export const getYouTubeEmbedUrl = videoId => {
   if (!videoId) return null;
   return `https://www.youtube.com/embed/${videoId}?rel=0&showinfo=0&modestbranding=1`;
 };
 
 // Helper function to validate routine generation
-export const validateRoutinePreferences = (preferences) => {
+export const validateRoutinePreferences = preferences => {
   const errors = [];
-  
+
   if (!preferences.duration || preferences.duration < 60) {
     errors.push('Duration must be at least 1 minute');
   }
-  
+
   if (!preferences.goals || preferences.goals.length === 0) {
     errors.push('At least one goal must be selected');
   }
-  
+
   if (!preferences.bodyParts || preferences.bodyParts.length === 0) {
     errors.push('At least one body part must be selected');
   }
-  
+
   return {
     isValid: errors.length === 0,
-    error: errors.join('. ')
+    error: errors.join('. '),
   };
 };

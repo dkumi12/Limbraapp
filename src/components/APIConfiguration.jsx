@@ -1,28 +1,28 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
 
 const APIConfiguration = ({ onSave, onSkip }) => {
-  const [openRouterKey, setOpenRouterKey] = useState('')
-  const [youtubeKey, setYoutubeKey] = useState('')
-  const [showInstructions, setShowInstructions] = useState(false)
+  const [openRouterKey, setOpenRouterKey] = useState('');
+  const [youtubeKey, setYoutubeKey] = useState('');
+  const [showInstructions, setShowInstructions] = useState(false);
 
   useEffect(() => {
     // Check if keys are already saved in localStorage
-    const savedOpenRouterKey = localStorage.getItem('openrouter_api_key')
-    const savedYoutubeKey = localStorage.getItem('youtube_api_key')
-    
-    if (savedOpenRouterKey) setOpenRouterKey(savedOpenRouterKey)
-    if (savedYoutubeKey) setYoutubeKey(savedYoutubeKey)
-  }, [])
+    const savedOpenRouterKey = localStorage.getItem('openrouter_api_key');
+    const savedYoutubeKey = localStorage.getItem('youtube_api_key');
+
+    if (savedOpenRouterKey) setOpenRouterKey(savedOpenRouterKey);
+    if (savedYoutubeKey) setYoutubeKey(savedYoutubeKey);
+  }, []);
 
   const handleSave = () => {
     if (openRouterKey) {
-      localStorage.setItem('openrouter_api_key', openRouterKey)
+      localStorage.setItem('openrouter_api_key', openRouterKey);
     }
     if (youtubeKey) {
-      localStorage.setItem('youtube_api_key', youtubeKey)
+      localStorage.setItem('youtube_api_key', youtubeKey);
     }
-    onSave({ openRouterKey, youtubeKey })
-  }
+    onSave({ openRouterKey, youtubeKey });
+  };
 
   return (
     <div className="api-configuration">
@@ -35,8 +35,8 @@ const APIConfiguration = ({ onSave, onSkip }) => {
 
       <div className="api-notice">
         <p>
-          <strong>Optional:</strong> API keys enable AI-generated routines and YouTube videos. 
-          The app works without them using pre-built routines.
+          <strong>Optional:</strong> API keys enable AI-generated routines and
+          YouTube videos. The app works without them using pre-built routines.
         </p>
       </div>
 
@@ -48,14 +48,20 @@ const APIConfiguration = ({ onSave, onSkip }) => {
           type="password"
           className="form-input"
           value={openRouterKey}
-          onChange={(e) => setOpenRouterKey(e.target.value)}
+          onChange={e => setOpenRouterKey(e.target.value)}
           placeholder="sk-or-..."
         />
-        <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
+        <p
+          style={{
+            fontSize: '0.75rem',
+            color: '#64748b',
+            marginTop: '0.25rem',
+          }}
+        >
           Get your key from{' '}
-          <a 
-            href="https://openrouter.ai/keys" 
-            target="_blank" 
+          <a
+            href="https://openrouter.ai/keys"
+            target="_blank"
             rel="noopener noreferrer"
             style={{ color: 'var(--primary-green)' }}
           >
@@ -72,14 +78,20 @@ const APIConfiguration = ({ onSave, onSkip }) => {
           type="password"
           className="form-input"
           value={youtubeKey}
-          onChange={(e) => setYoutubeKey(e.target.value)}
+          onChange={e => setYoutubeKey(e.target.value)}
           placeholder="AIza..."
         />
-        <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
+        <p
+          style={{
+            fontSize: '0.75rem',
+            color: '#64748b',
+            marginTop: '0.25rem',
+          }}
+        >
           Get your key from{' '}
-          <a 
-            href="https://console.cloud.google.com/apis/credentials" 
-            target="_blank" 
+          <a
+            href="https://console.cloud.google.com/apis/credentials"
+            target="_blank"
             rel="noopener noreferrer"
             style={{ color: 'var(--primary-green)' }}
           >
@@ -97,13 +109,15 @@ const APIConfiguration = ({ onSave, onSkip }) => {
       </button>
 
       {showInstructions && (
-        <div style={{ 
-          background: '#f8f9fa', 
-          padding: '1rem', 
-          borderRadius: '8px',
-          marginBottom: '1rem',
-          fontSize: '0.875rem'
-        }}>
+        <div
+          style={{
+            background: '#f8f9fa',
+            padding: '1rem',
+            borderRadius: '8px',
+            marginBottom: '1rem',
+            fontSize: '0.875rem',
+          }}
+        >
           <h3 style={{ marginBottom: '0.5rem' }}>OpenRouter Setup:</h3>
           <ol>
             <li>Go to openrouter.ai and sign up</li>
@@ -111,8 +125,10 @@ const APIConfiguration = ({ onSave, onSkip }) => {
             <li>Generate an API key</li>
             <li>Paste it above</li>
           </ol>
-          
-          <h3 style={{ marginTop: '1rem', marginBottom: '0.5rem' }}>YouTube API Setup:</h3>
+
+          <h3 style={{ marginTop: '1rem', marginBottom: '0.5rem' }}>
+            YouTube API Setup:
+          </h3>
           <ol>
             <li>Go to Google Cloud Console</li>
             <li>Create a new project</li>
@@ -125,14 +141,10 @@ const APIConfiguration = ({ onSave, onSkip }) => {
       )}
 
       <div style={{ display: 'flex', gap: '1rem' }}>
-        <button 
-          className="btn"
-          onClick={handleSave}
-          style={{ flex: 1 }}
-        >
+        <button className="btn" onClick={handleSave} style={{ flex: 1 }}>
           Save & Continue
         </button>
-        <button 
+        <button
           className="btn btn-secondary"
           onClick={onSkip}
           style={{ flex: 1 }}
@@ -141,7 +153,7 @@ const APIConfiguration = ({ onSave, onSkip }) => {
         </button>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default APIConfiguration
+export default APIConfiguration;

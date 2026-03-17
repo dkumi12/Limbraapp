@@ -1,13 +1,15 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase URL or Anon Key is missing. Ensure they are set in your .env file.')
+  console.warn(
+    'Supabase URL or Anon Key is missing. Ensure they are set in your .env file.'
+  );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export async function deductUserCredit(userId) {
   try {
@@ -16,23 +18,23 @@ export async function deductUserCredit(userId) {
       .from('profiles')
       .select('credits')
       .eq('id', userId)
-      .single()
+      .single();
 
-    if (fetchError) throw fetchError
-    if (data.credits <= 0) throw new Error('Insufficient credits')
+    if (fetchError) throw fetchError;
+    if (data.credits <= 0) throw new Error('Insufficient credits');
 
     // Deduct one credit
     const { error: updateError } = await supabase
       .from('profiles')
       .update({ credits: data.credits - 1 })
-      .eq('id', userId)
+      .eq('id', userId);
 
-    if (updateError) throw updateError
-    
-    return { success: true, remainingCredits: data.credits - 1 }
+    if (updateError) throw updateError;
+
+    return { success: true, remainingCredits: data.credits - 1 };
   } catch (error) {
-    console.error('Error deducting credit:', error)
-    return { success: false, error: error.message }
+    console.error('Error deducting credit:', error);
+    return { success: false, error: error.message };
   }
 }
 
@@ -44,7 +46,7 @@ export async function syncUserStats(userId, stats) {
         streak_days: stats.streakDays,
         last_session_date: stats.lastSessionDate,
         total_sessions: stats.totalSessions,
-        total_time_spent: stats.totalTimeSpent
+        total_time_spent: stats.totalTimeSpent,
       })
       .eq('id', userId);
 

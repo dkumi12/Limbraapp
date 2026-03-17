@@ -6,17 +6,20 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
 [![PWA Ready](https://img.shields.io/badge/PWA-Ready-green.svg)](https://web.dev/progressive-web-apps/)
 
-> **AI-powered personalized warm-up and stretching routines for optimal wellness and injury prevention**
+> **AI-powered personalized warm-up and stretching routines for optimal wellness and injury
+> prevention**
 
 ## 🚀 Features
 
 ### **Core Functionality**
+
 - **🤖 AI-Powered Routines**: Personalized stretching sequences based on user preferences and goals
 - **🎥 Video Integration**: High-quality exercise demonstrations with YouTube integration
 - **📱 Progressive Web App**: Native app-like experience with offline capability
 - **🎨 Material Design**: Beautiful, accessible UI with consistent design language
 
 ### **Professional Engineering**
+
 - **✅ TypeScript Ready**: Full TypeScript support with strict type checking
 - **✅ Modern React**: React 18 with hooks, context, and modern patterns
 - **✅ PWA Optimized**: Service worker, caching, and offline functionality
@@ -25,7 +28,9 @@
 - **✅ CI/CD Pipeline**: Automated testing, building, and deployment
 - **✅ Code Quality**: ESLint, Prettier, and automated code formatting
 - **✅ Performance Optimized**: Bundle analysis and optimization
+
 ### **Wellness & Health Focus**
+
 - **🎯 Goal-Based Training**: Customizable routines for flexibility, strength, and recovery
 - **📊 Progress Tracking**: Monitor your improvement over time
 - **🎵 Animated Guidance**: Lottie animations for smooth, engaging instructions
@@ -35,6 +40,7 @@
 ## 🛠️ Technology Stack
 
 ### **Frontend**
+
 - **React 18** - Modern React with hooks and concurrent features
 - **TypeScript** - Type-safe development with excellent IDE support
 - **Vite** - Lightning-fast build tool and development server
@@ -43,6 +49,7 @@
 - **Emotion** - CSS-in-JS styling with excellent performance
 
 ### **Development & Testing**
+
 - **Vitest** - Fast, modern testing framework
 - **Playwright** - End-to-end testing across browsers
 - **ESLint** - Code linting with React and TypeScript rules
@@ -52,11 +59,13 @@
 ## 🚀 Quick Start
 
 ### **Prerequisites**
+
 - Node.js 18.0.0 or higher
 - npm 9.0.0 or higher
 - Git
 
 ### **Installation**
+
 ```bash
 # Clone the repository
 git clone https://github.com/dkumi12/Limbraapp.git
@@ -70,6 +79,7 @@ npm run dev
 ```
 
 ### **Available Scripts**
+
 ```bash
 # Development
 npm run dev          # Start development server
@@ -120,12 +130,14 @@ Limbraapp/
 ## 🧪 Testing Strategy
 
 ### **Unit Tests**
+
 - **Components**: Test rendering, props, and user interactions
 - **Hooks**: Test custom React hooks with React Testing Library
 - **Utilities**: Test pure functions with comprehensive edge cases
 - **Coverage Target**: >80% line coverage
 
 ### **Integration Tests**
+
 - **User Flows**: Test complete user journeys
 - **API Integration**: Mock external services and test error handling
 - **State Management**: Test context providers and state updates
@@ -133,12 +145,14 @@ Limbraapp/
 ## 🚀 Deployment
 
 ### **Development Environment**
+
 ```bash
 npm run dev
 # Runs on http://localhost:5173
 ```
 
 ### **Production Build**
+
 ```bash
 npm run build
 npm run preview
@@ -146,13 +160,16 @@ npm run preview
 ```
 
 ### **GitHub Pages Deployment**
+
 The app is automatically deployed to GitHub Pages on push to main branch:
+
 - **Production URL**: https://dkumi12.github.io/Limbraapp
 - **PWA Installation**: Available on mobile devices and desktops
 
 ## 🛡️ Security & Privacy
 
 ### **Data Protection**
+
 - **No Personal Data Storage**: Privacy-first design
 - **Local Storage Only**: User preferences stored locally
 - **HTTPS Enforced**: Secure connections required
@@ -161,6 +178,7 @@ The app is automatically deployed to GitHub Pages on push to main branch:
 ## 🤝 Contributing
 
 ### **Development Setup**
+
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Install dependencies (`npm install`)
@@ -171,6 +189,7 @@ The app is automatically deployed to GitHub Pages on push to main branch:
 8. Open a Pull Request
 
 ### **Code Standards**
+
 - **TypeScript**: Strict mode with comprehensive type checking
 - **ESLint**: React, TypeScript, and accessibility rules
 - **Prettier**: Consistent code formatting

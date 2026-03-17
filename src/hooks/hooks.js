@@ -52,12 +52,15 @@ export function useTimer(initialTime = 0) {
       intervalRef.current = setInterval(() => {
         const now = Date.now();
         const elapsed = now - startTimeRef.current;
-        
+
         if (initialTime > 0) {
           // Countdown timer
-          const remaining = Math.max(0, initialTime - Math.floor(elapsed / 1000));
+          const remaining = Math.max(
+            0,
+            initialTime - Math.floor(elapsed / 1000)
+          );
           setTime(remaining);
-          
+
           if (remaining === 0) {
             setIsRunning(false);
             setIsPaused(false);
@@ -80,7 +83,7 @@ export function useTimer(initialTime = 0) {
     };
   }, [isRunning, initialTime]);
 
-  const formatTime = useCallback((seconds) => {
+  const formatTime = useCallback(seconds => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
@@ -94,7 +97,7 @@ export function useTimer(initialTime = 0) {
     pause,
     reset,
     stop,
-    formatTime
+    formatTime,
   };
 }
 
@@ -109,15 +112,19 @@ export function useLocalStorage(key, initialValue) {
     }
   });
 
-  const setValue = useCallback((value) => {
-    try {
-      const valueToStore = value instanceof Function ? value(storedValue) : value;
-      setStoredValue(valueToStore);
-      window.localStorage.setItem(key, JSON.stringify(valueToStore));
-    } catch (error) {
-      console.error(`Error setting localStorage key "${key}":`, error);
-    }
-  }, [key, storedValue]);
+  const setValue = useCallback(
+    value => {
+      try {
+        const valueToStore =
+          value instanceof Function ? value(storedValue) : value;
+        setStoredValue(valueToStore);
+        window.localStorage.setItem(key, JSON.stringify(valueToStore));
+      } catch (error) {
+        console.error(`Error setting localStorage key "${key}":`, error);
+      }
+    },
+    [key, storedValue]
+  );
 
   return [storedValue, setValue];
 }
@@ -129,94 +136,102 @@ export function useRoutineStats(userId) {
     streakDays: 0,
     lastSessionDate: null,
     favoriteGoals: {},
-    completedRoutines: []
+    completedRoutines: [],
   });
 
-  const updateStats = useCallback((routineData) => {
-    const today = new Date().toDateString();
-    const lastSession = stats.lastSessionDate;
-    
-    setStats(prevStats => {
-      const newStats = { ...prevStats };
-      
-      // Update basic stats
-      newStats.totalSessions += 1;
-      newStats.totalTimeSpent += routineData.duration || 0;
-      
-      // Update streak
-      if (lastSession !== today) {
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        
-        if (lastSession === yesterday.toDateString()) {
-          newStats.streakDays += 1;
-        } else if (lastSession !== today) {
-          newStats.streakDays = 1;
+  const updateStats = useCallback(
+    routineData => {
+      const today = new Date().toDateString();
+      const lastSession = stats.lastSessionDate;
+
+      setStats(prevStats => {
+        const newStats = { ...prevStats };
+
+        // Update basic stats
+        newStats.totalSessions += 1;
+        newStats.totalTimeSpent += routineData.duration || 0;
+
+        // Update streak
+        if (lastSession !== today) {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+
+          if (lastSession === yesterday.toDateString()) {
+            newStats.streakDays += 1;
+          } else if (lastSession !== today) {
+            newStats.streakDays = 1;
+          }
         }
-      }
-      
-      newStats.lastSessionDate = today;
-      
-      // Track favorite goals
-      if (routineData.goals) {
-        routineData.goals.forEach(goal => {
-          newStats.favoriteGoals[goal] = (newStats.favoriteGoals[goal] || 0) + 1;
+
+        newStats.lastSessionDate = today;
+
+        // Track favorite goals
+        if (routineData.goals) {
+          routineData.goals.forEach(goal => {
+            newStats.favoriteGoals[goal] =
+              (newStats.favoriteGoals[goal] || 0) + 1;
+          });
+        }
+
+        // Add to completed routines
+        newStats.completedRoutines.push({
+          date: today,
+          duration: routineData.duration,
+          exercises: routineData.exercises?.length || 0,
+          goals: routineData.goals || [],
+          routineId: routineData.id || `routine_${Date.now()}`,
+          routineName: routineData.name || 'AI Generated Routine',
+          fullRoutineData: routineData, // Store the full routine data here
         });
-      }
-      
-      // Add to completed routines
-      newStats.completedRoutines.push({
-        date: today,
-        duration: routineData.duration,
-        exercises: routineData.exercises?.length || 0,
-        goals: routineData.goals || [],
-        routineId: routineData.id || `routine_${Date.now()}`,
-        routineName: routineData.name || 'AI Generated Routine',
-        fullRoutineData: routineData // Store the full routine data here
+
+        // Keep only last 30 sessions
+        if (newStats.completedRoutines.length > 30) {
+          newStats.completedRoutines = newStats.completedRoutines.slice(-30);
+        }
+
+        // Sync with Supabase if userId is provided
+        if (userId) {
+          syncUserStats(userId, newStats);
+        }
+
+        return newStats;
       });
-      
-      // Keep only last 30 sessions
-      if (newStats.completedRoutines.length > 30) {
-        newStats.completedRoutines = newStats.completedRoutines.slice(-30);
-      }
-      
-      // Sync with Supabase if userId is provided
-      if (userId) {
-        syncUserStats(userId, newStats);
-      }
-      
-      return newStats;
-    });
-  }, [stats.lastSessionDate, setStats, userId]);
+    },
+    [stats.lastSessionDate, setStats, userId]
+  );
 
   return { stats, updateStats };
 }
 
 export function useAudio() {
   const [isSupported, setIsSupported] = useState(false);
-  
+
   useEffect(() => {
     setIsSupported('Audio' in window);
   }, []);
 
   const playBeep = useCallback(() => {
     if (!isSupported) return;
-    
+
     try {
       // Create a simple beep sound using Web Audio API
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const audioContext = new (window.AudioContext ||
+        window.webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
-      
+
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
-      
+
       oscillator.frequency.value = 800;
       oscillator.type = 'sine';
-      
+
       gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-      
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.01,
+        audioContext.currentTime + 0.2
+      );
+
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.2);
     } catch (error) {
@@ -226,25 +241,26 @@ export function useAudio() {
 
   const playSuccess = useCallback(() => {
     if (!isSupported) return;
-    
+
     try {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      
+      const audioContext = new (window.AudioContext ||
+        window.webkitAudioContext)();
+
       // Play a success chord (C-E-G)
       [523.25, 659.25, 783.99].forEach((frequency, index) => {
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-        
+
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-        
+
         oscillator.frequency.value = frequency;
         oscillator.type = 'sine';
-        
+
         const startTime = audioContext.currentTime + index * 0.1;
         gainNode.gain.setValueAtTime(0.2, startTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.5);
-        
+
         oscillator.start(startTime);
         oscillator.stop(startTime + 0.5);
       });
@@ -256,7 +272,8 @@ export function useAudio() {
   const playAlert = useCallback(() => {
     if (!isSupported) return;
     try {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const audioContext = new (window.AudioContext ||
+        window.webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
       oscillator.connect(gainNode);
@@ -264,7 +281,10 @@ export function useAudio() {
       oscillator.frequency.value = 1200; // Higher pitch
       oscillator.type = 'square';
       gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.6);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.01,
+        audioContext.currentTime + 0.6
+      );
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.6);
     } catch (error) {
@@ -289,11 +309,11 @@ export function useWakeLock() {
     try {
       const lock = await navigator.wakeLock.request('screen');
       setWakeLock(lock);
-      
+
       lock.addEventListener('release', () => {
         setWakeLock(null);
       });
-      
+
       return true;
     } catch (error) {
       console.error('Wake lock request failed:', error);
@@ -320,6 +340,6 @@ export function useWakeLock() {
     isSupported,
     isActive: !!wakeLock,
     requestWakeLock,
-    releaseWakeLock
+    releaseWakeLock,
   };
 }

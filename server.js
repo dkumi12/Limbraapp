@@ -23,13 +23,13 @@ import generateHandler from './api/generate.js';
 // Wrap the serverless function for Express API
 app.post('/api/generate', async (req, res) => {
   console.log('📥 Received request to /api/generate');
-  
+
   const mockRes = {
-    status: (code) => {
+    status: code => {
       res.status(code);
       return mockRes;
     },
-    json: (data) => {
+    json: data => {
       res.json(data);
     },
     setHeader: (key, value) => {
@@ -37,9 +37,9 @@ app.post('/api/generate', async (req, res) => {
     },
     end: () => {
       res.end();
-    }
+    },
   };
-  
+
   await generateHandler(req, mockRes);
 });
 

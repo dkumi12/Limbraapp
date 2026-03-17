@@ -9,7 +9,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install ALL dependencies (including dev for building)
-RUN npm ci
+RUN npm ci --ignore-scripts
 
 # Copy source code
 COPY . .
@@ -42,10 +42,7 @@ WORKDIR /app
 
 # Copy package files and install only production dependencies
 COPY package*.json ./
-RUN npm ci --only=production
-
-# Install express and cors explicitly to ensure they are available for the server
-RUN npm install express cors dotenv @aws-sdk/client-bedrock-runtime
+RUN npm ci --only=production --ignore-scripts
 
 # Copy backend server files
 COPY server.js .

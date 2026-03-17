@@ -1,6 +1,11 @@
-import React, { useState, useEffect } from 'react'
-import { GOALS, BODY_PARTS, DIFFICULTY_LEVELS, validateRoutinePreferences } from '../routineGenerator'
-import { EQUIPMENT_TYPES, EQUIPMENT_INFO } from '../services/api'
+import React, { useState, useEffect } from 'react';
+import {
+  GOALS,
+  BODY_PARTS,
+  DIFFICULTY_LEVELS,
+  validateRoutinePreferences,
+} from '../routineGenerator';
+import { EQUIPMENT_TYPES, EQUIPMENT_INFO } from '../services/api';
 import EvaIcon from './EvaIcon';
 import StretchFigureLottie from './StretchFigureLottie';
 import MessageCarousel from './MessageCarousel';
@@ -9,21 +14,21 @@ import { useAuth } from '../hooks';
 
 const PreferencesForm = ({ onGenerate, stats }) => {
   const { profile } = useAuth();
-  const [duration, setDuration] = useState(10)
-  const [goals, setGoals] = useState([])
-  const [bodyParts, setBodyParts] = useState([])
-  const [equipment, setEquipment] = useState(['none'])
-  const [difficulty, setDifficulty] = useState(DIFFICULTY_LEVELS.BEGINNER)
-  const [energyLevel, setEnergyLevel] = useState('medium')
+  const [duration, setDuration] = useState(10);
+  const [goals, setGoals] = useState([]);
+  const [bodyParts, setBodyParts] = useState([]);
+  const [equipment, setEquipment] = useState(['none']);
+  const [difficulty, setDifficulty] = useState(DIFFICULTY_LEVELS.BEGINNER);
+  const [energyLevel, setEnergyLevel] = useState('medium');
   const [timeOfDay, setTimeOfDay] = useState(() => {
-    const hour = new Date().getHours()
-    if (hour < 12) return 'morning'
-    if (hour < 17) return 'midday'
-    return 'evening'
-  })
-  const [problems, setProblems] = useState([])
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [isSaved, setIsSaved] = useState(false)
+    const hour = new Date().getHours();
+    if (hour < 12) return 'morning';
+    if (hour < 17) return 'midday';
+    return 'evening';
+  });
+  const [problems, setProblems] = useState([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
   const [showStatsSummary, setShowStatsSummary] = useState(true);
   const [showSaveConfirmation, setShowSaveConfirmation] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
@@ -46,7 +51,8 @@ const PreferencesForm = ({ onGenerate, stats }) => {
 
   // Check localStorage on mount to see if summary should be hidden
   useEffect(() => {
-    const hideStatsSummary = localStorage.getItem('hideStatsSummary') === 'true';
+    const hideStatsSummary =
+      localStorage.getItem('hideStatsSummary') === 'true';
     if (hideStatsSummary) {
       setShowStatsSummary(false);
     }
@@ -60,12 +66,12 @@ const PreferencesForm = ({ onGenerate, stats }) => {
       title: 'Wake & Stretch',
       subtitle: '5 min energizing',
       preset: () => {
-        setGoals([GOALS.MORNING_WAKE_UP])
-        setBodyParts([BODY_PARTS.FULL_BODY])
-        setEnergyLevel('medium')
-        setDuration(5)
-        setEquipment(['none'])
-      }
+        setGoals([GOALS.MORNING_WAKE_UP]);
+        setBodyParts([BODY_PARTS.FULL_BODY]);
+        setEnergyLevel('medium');
+        setDuration(5);
+        setEquipment(['none']);
+      },
     },
     {
       id: 'desk',
@@ -74,12 +80,16 @@ const PreferencesForm = ({ onGenerate, stats }) => {
       title: 'Desk Reset',
       subtitle: '10 min neck & shoulders',
       preset: () => {
-        setGoals([GOALS.DESK_BREAK])
-        setBodyParts([BODY_PARTS.NECK, BODY_PARTS.SHOULDERS, BODY_PARTS.UPPER_BACK])
-        setEnergyLevel('low')
-        setDuration(10)
-        setEquipment(['wall', 'chair'])
-      }
+        setGoals([GOALS.DESK_BREAK]);
+        setBodyParts([
+          BODY_PARTS.NECK,
+          BODY_PARTS.SHOULDERS,
+          BODY_PARTS.UPPER_BACK,
+        ]);
+        setEnergyLevel('low');
+        setDuration(10);
+        setEquipment(['wall', 'chair']);
+      },
     },
     {
       id: 'workout',
@@ -88,12 +98,12 @@ const PreferencesForm = ({ onGenerate, stats }) => {
       title: 'Cool Down Stretch',
       subtitle: '5 min recovery',
       preset: () => {
-        setGoals([GOALS.POST_WORKOUT])
-        setBodyParts([BODY_PARTS.LEGS, BODY_PARTS.HIPS])
-        setEnergyLevel('low')
-        setDuration(5)
-        setEquipment(['foam_roller', 'mat'])
-      }
+        setGoals([GOALS.POST_WORKOUT]);
+        setBodyParts([BODY_PARTS.LEGS, BODY_PARTS.HIPS]);
+        setEnergyLevel('low');
+        setDuration(5);
+        setEquipment(['foam_roller', 'mat']);
+      },
     },
     {
       id: 'bedtime',
@@ -102,14 +112,14 @@ const PreferencesForm = ({ onGenerate, stats }) => {
       title: 'Wind Down Flow',
       subtitle: '5 min relaxing',
       preset: () => {
-        setGoals([GOALS.BEDTIME_RELAX])
-        setBodyParts([BODY_PARTS.FULL_BODY])
-        setEnergyLevel('low')
-        setDuration(5)
-        setEquipment(['mat'])
-      }
-    }
-  ]
+        setGoals([GOALS.BEDTIME_RELAX]);
+        setBodyParts([BODY_PARTS.FULL_BODY]);
+        setEnergyLevel('low');
+        setDuration(5);
+        setEquipment(['mat']);
+      },
+    },
+  ];
 
   const quickStartEvaIcons = {
     morning: 'sun-outline',
@@ -119,55 +129,55 @@ const PreferencesForm = ({ onGenerate, stats }) => {
   };
 
   const goalOptions = [
-    { 
-      value: GOALS.MORNING_WAKE_UP, 
-      label: 'Morning Wake-up', 
+    {
+      value: GOALS.MORNING_WAKE_UP,
+      label: 'Morning Wake-up',
       description: 'Energize and activate your body',
-      icon: '🌅'
+      icon: '🌅',
     },
-    { 
-      value: GOALS.PRE_WORKOUT, 
-      label: 'Pre-workout', 
+    {
+      value: GOALS.PRE_WORKOUT,
+      label: 'Pre-workout',
       description: 'Prepare your muscles for exercise',
-      icon: '🏋️'
+      icon: '🏋️',
     },
-    { 
-      value: GOALS.POST_WORKOUT, 
-      label: 'Post-workout', 
+    {
+      value: GOALS.POST_WORKOUT,
+      label: 'Post-workout',
       description: 'Recovery and cool down',
-      icon: '🧘'
+      icon: '🧘',
     },
-    { 
-      value: GOALS.DESK_BREAK, 
-      label: 'Desk Break', 
+    {
+      value: GOALS.DESK_BREAK,
+      label: 'Desk Break',
       description: 'Counter sitting posture',
-      icon: '💻'
+      icon: '💻',
     },
-    { 
-      value: GOALS.STRESS_RELIEF, 
-      label: 'Relaxation', 
+    {
+      value: GOALS.STRESS_RELIEF,
+      label: 'Relaxation',
       description: 'Calm your mind and body',
-      icon: '🌙'
+      icon: '🌙',
     },
-    { 
-      value: GOALS.BEDTIME_RELAX, 
-      label: 'Bedtime Relax', 
+    {
+      value: GOALS.BEDTIME_RELAX,
+      label: 'Bedtime Relax',
       description: 'Prepare for restful sleep',
-      icon: '😴'
+      icon: '😴',
     },
-    { 
-      value: GOALS.PAIN_RELIEF, 
-      label: 'Pain Relief', 
+    {
+      value: GOALS.PAIN_RELIEF,
+      label: 'Pain Relief',
       description: 'Target specific discomfort',
-      icon: '🩹'
+      icon: '🩹',
     },
-    { 
-      value: GOALS.FLEXIBILITY, 
-      label: 'Flexibility', 
+    {
+      value: GOALS.FLEXIBILITY,
+      label: 'Flexibility',
       description: 'Improve range of motion',
-      icon: '🤸'
-    }
-  ]
+      icon: '🤸',
+    },
+  ];
 
   const bodyPartOptions = [
     { value: BODY_PARTS.NECK, label: 'Neck', icon: '🦴' },
@@ -179,48 +189,46 @@ const PreferencesForm = ({ onGenerate, stats }) => {
     { value: BODY_PARTS.HIPS, label: 'Hips', icon: '🦴' },
     { value: BODY_PARTS.LEGS, label: 'Legs', icon: '🦵' },
     { value: BODY_PARTS.CALVES, label: 'Calves', icon: '🦶' },
-    { value: BODY_PARTS.FULL_BODY, label: 'Full Body', icon: '🧘' }
-  ]
+    { value: BODY_PARTS.FULL_BODY, label: 'Full Body', icon: '🧘' },
+  ];
 
-  const handleGoalToggle = (goal) => {
-    setGoals(prev => 
-      prev.includes(goal) 
-        ? prev.filter(g => g !== goal)
-        : [...prev, goal]
-    )
-  }
+  const handleGoalToggle = goal => {
+    setGoals(prev =>
+      prev.includes(goal) ? prev.filter(g => g !== goal) : [...prev, goal]
+    );
+  };
 
-  const handleBodyPartToggle = (bodyPart) => {
-    setBodyParts(prev => 
-      prev.includes(bodyPart) 
+  const handleBodyPartToggle = bodyPart => {
+    setBodyParts(prev =>
+      prev.includes(bodyPart)
         ? prev.filter(bp => bp !== bodyPart)
         : [...prev, bodyPart]
-    )
-  }
+    );
+  };
 
-  const handleEquipmentToggle = (equipmentType) => {
+  const handleEquipmentToggle = equipmentType => {
     setEquipment(prev => {
       if (equipmentType === 'none') {
-        return ['none']
+        return ['none'];
       }
-      const filtered = prev.filter(e => e !== 'none')
+      const filtered = prev.filter(e => e !== 'none');
       return filtered.includes(equipmentType)
         ? filtered.filter(e => e !== equipmentType)
-        : [...filtered, equipmentType]
-    })
-  }
+        : [...filtered, equipmentType];
+    });
+  };
 
-  const handleProblemToggle = (problem) => {
-    setProblems(prev => 
-      prev.includes(problem) 
+  const handleProblemToggle = problem => {
+    setProblems(prev =>
+      prev.includes(problem)
         ? prev.filter(p => p !== problem)
         : [...prev, problem]
-    )
-  }
+    );
+  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    
+  const handleSubmit = async e => {
+    e.preventDefault();
+
     const preferences = {
       duration: duration * 60,
       goals,
@@ -229,58 +237,65 @@ const PreferencesForm = ({ onGenerate, stats }) => {
       difficulty,
       energyLevel,
       timeOfDay,
-      problems
-    }
+      problems,
+    };
 
-    const validation = validateRoutinePreferences(preferences)
+    const validation = validateRoutinePreferences(preferences);
     if (!validation.isValid) {
-      alert(validation.error)
-      return
+      alert(validation.error);
+      return;
     }
 
-    setIsGenerating(true)
+    setIsGenerating(true);
     try {
-      await onGenerate(preferences)
-      setIsSaved(true)
+      await onGenerate(preferences);
+      setIsSaved(true);
     } catch (error) {
-      console.error('Error generating routine:', error)
-      alert('Failed to generate routine with AI. Please check your OpenRouter API key and network connection. Fallback routines are no longer available.');
+      console.error('Error generating routine:', error);
+      alert(
+        'Failed to generate routine with AI. Please check your OpenRouter API key and network connection. Fallback routines are no longer available.'
+      );
     } finally {
-      setIsGenerating(false)
+      setIsGenerating(false);
     }
-  }
-  
-  const handleSearchRoutineGenerated = (routine) => {
-    setShowSearch(false)
+  };
+
+  const handleSearchRoutineGenerated = routine => {
+    setShowSearch(false);
     onGenerate({
       searchGenerated: true,
-      routine
-    })
-  }
+      routine,
+    });
+  };
 
   const handleReset = () => {
-    setGoals([])
-    setBodyParts([])
-    setEquipment(['none'])
-    setIsSaved(false)
-  }
+    setGoals([]);
+    setBodyParts([]);
+    setEquipment(['none']);
+    setIsSaved(false);
+  };
 
-  const durationOptions = [5, 10, 15, 20, 30]
+  const durationOptions = [5, 10, 15, 20, 30];
 
   return (
     <form onSubmit={handleSubmit} className="preferences-form">
       {/* Stats Summary with close button */}
       {stats.totalSessions > 0 && showStatsSummary && (
-        <div className="stats-summary" style={{ 
-          position: 'relative', 
-          backgroundColor: '#d1f5da', 
-          borderRadius: '10px', 
-          padding: '1rem', 
-          marginBottom: '1.5rem',
-          color: '#16a34a',
-          boxShadow: '0 2px 8px rgba(34, 197, 94, 0.1)'
-        }}>
-          <span>Welcome back! You've completed {stats.totalSessions} sessions 🎉</span>
+        <div
+          className="stats-summary"
+          style={{
+            position: 'relative',
+            backgroundColor: '#d1f5da',
+            borderRadius: '10px',
+            padding: '1rem',
+            marginBottom: '1.5rem',
+            color: '#16a34a',
+            boxShadow: '0 2px 8px rgba(34, 197, 94, 0.1)',
+          }}
+        >
+          <span>
+            Welcome back! You've completed {stats.totalSessions} sessions 🎉
+          </span>
           <button
             type="button"
             onClick={closeStatsSummary}
@@ -299,7 +314,7 @@ const PreferencesForm = ({ onGenerate, stats }) => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              zIndex: 10
+              zIndex: 10,
             }}
             aria-label="Close welcome message"
           >
@@ -309,19 +324,31 @@ const PreferencesForm = ({ onGenerate, stats }) => {
       )}
 
       {/* Hero Section */}
-      <div className="hero-card" style={{ background: '#232b39', borderRadius: '1.25rem', boxShadow: '0 4px 24px 0 #00000022', padding: '2rem 1.5rem', marginBottom: '2rem', textAlign: 'center' }}>
+      <div
+        className="hero-card"
+        style={{
+          background: '#232b39',
+          borderRadius: '1.25rem',
+          boxShadow: '0 4px 24px 0 #00000022',
+          padding: '2rem 1.5rem',
+          marginBottom: '2rem',
+          textAlign: 'center',
+        }}
+      >
         <MessageCarousel
-              messages={[
-                "Stretch smarter. Feel stronger.",
-                "Release tension. Regain motion.",
-                "Unlock your body's best.",
-                "Small stretches. Big results.",
-                "Breathe in. Stretch out.",
-                "Feel better in 5 minutes.",
-              ]}
-              className="hero-headline"
-            />
-        <div className="hero-subheadline">Daily guided stretches to unlock your body's best.</div>
+          messages={[
+            'Stretch smarter. Feel stronger.',
+            'Release tension. Regain motion.',
+            "Unlock your body's best.",
+            'Small stretches. Big results.',
+            'Breathe in. Stretch out.',
+            'Feel better in 5 minutes.',
+          ]}
+          className="hero-headline"
+        />
+        <div className="hero-subheadline">
+          Daily guided stretches to unlock your body's best.
+        </div>
       </div>
 
       {/* Search Toggle Button */}
@@ -340,28 +367,34 @@ const PreferencesForm = ({ onGenerate, stats }) => {
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.5rem',
-            transition: 'all 0.2s ease'
+            transition: 'all 0.2s ease',
           }}
-          onMouseEnter={(e) => {
+          onMouseEnter={e => {
             e.currentTarget.style.background = '#2d3344';
             e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(34, 197, 94, 0.2)';
+            e.currentTarget.style.boxShadow =
+              '0 4px 12px rgba(34, 197, 94, 0.2)';
           }}
-          onMouseLeave={(e) => {
+          onMouseLeave={e => {
             e.currentTarget.style.background = '#1a2031';
             e.currentTarget.style.transform = 'translateY(0)';
             e.currentTarget.style.boxShadow = 'none';
           }}
         >
-          <EvaIcon name={showSearch ? "chevron-up-outline" : "search-outline"} width={18} height={18} fill="var(--primary-green)" />
-          {showSearch ? "Hide Search" : "Search for Specific Stretches"}
+          <EvaIcon
+            name={showSearch ? 'chevron-up-outline' : 'search-outline'}
+            width={18}
+            height={18}
+            fill="var(--primary-green)"
+          />
+          {showSearch ? 'Hide Search' : 'Search for Specific Stretches'}
         </button>
       </div>
 
       {/* Conditional rendering for search or quick start */}
       {showSearch ? (
-        <ExerciseSearch 
-          onGenerateRoutine={handleSearchRoutineGenerated} 
+        <ExerciseSearch
+          onGenerateRoutine={handleSearchRoutineGenerated}
           defaultDuration={duration}
           defaultDifficulty={difficulty}
         />
@@ -369,10 +402,24 @@ const PreferencesForm = ({ onGenerate, stats }) => {
         <>
           {/* Quick Start Section */}
           <section className="quick-start-section">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-              <h2 className="section-title" style={{ color: 'white', fontWeight: 700, marginBottom: 0 }}>Stretch in a Snap</h2>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '0.5rem',
+              }}
+            >
+              <h2
+                className="section-title"
+                style={{ color: 'white', fontWeight: 700, marginBottom: 0 }}
+              >
+                Stretch in a Snap
+              </h2>
               <div className="stretch-anim">
-                <StretchFigureLottie style={{ width: '100%', height: '100%' }} />
+                <StretchFigureLottie
+                  style={{ width: '100%', height: '100%' }}
+                />
               </div>
             </div>
             <div className="quick-start-grid">
@@ -383,7 +430,12 @@ const PreferencesForm = ({ onGenerate, stats }) => {
                   onClick={option.preset}
                 >
                   <div className="quick-start-title">
-                    <EvaIcon name={quickStartEvaIcons[option.id]} width={24} height={24} fill={option.iconColor} />
+                    <EvaIcon
+                      name={quickStartEvaIcons[option.id]}
+                      width={24}
+                      height={24}
+                      fill={option.iconColor}
+                    />
                     <span>{option.title}</span>
                   </div>
                   <div className="quick-start-subtitle">{option.subtitle}</div>
@@ -418,7 +470,9 @@ const PreferencesForm = ({ onGenerate, stats }) => {
               onChange={e => setGoals([e.target.value])}
               style={{ width: '100%', marginBottom: '1rem' }}
             >
-              <option value="" disabled>Select a goal...</option>
+              <option value="" disabled>
+                Select a goal...
+              </option>
               {goalOptions.map(goal => (
                 <option key={goal.value} value={goal.value}>
                   {goal.icon} {goal.label}
@@ -430,7 +484,14 @@ const PreferencesForm = ({ onGenerate, stats }) => {
           {/* Body Parts Selection */}
           <section>
             <h2 className="section-title">Which areas to focus on?</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem 1rem', marginBottom: '1rem' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '0.5rem 1rem',
+                marginBottom: '1rem',
+              }}
+            >
               {bodyPartOptions.map((part, idx) => (
                 <label key={part.value} className="body-part-label">
                   <input
@@ -438,13 +499,17 @@ const PreferencesForm = ({ onGenerate, stats }) => {
                     checked={bodyParts.includes(part.value)}
                     onChange={e => {
                       if (e.target.checked) {
-                        setBodyParts(prev => [...prev, part.value])
+                        setBodyParts(prev => [...prev, part.value]);
                       } else {
-                        setBodyParts(prev => prev.filter(v => v !== part.value))
+                        setBodyParts(prev =>
+                          prev.filter(v => v !== part.value)
+                        );
                       }
                     }}
                   />
-                  <span>{part.icon} {part.label}</span>
+                  <span>
+                    {part.icon} {part.label}
+                  </span>
                 </label>
               ))}
             </div>
@@ -459,7 +524,10 @@ const PreferencesForm = ({ onGenerate, stats }) => {
             >
               {showSaveConfirmation ? (
                 <div className="save-confirmation-animation">
-                  <EvaIcon name="checkmark-circle-2-outline" style={{ fontSize: 22, color: 'white', marginRight: '6px' }} />
+                  <EvaIcon
+                    name="checkmark-circle-2-outline"
+                    style={{ fontSize: 22, color: 'white', marginRight: '6px' }}
+                  />
                   <span>Saved!</span>
                 </div>
               ) : (
@@ -479,8 +547,14 @@ const PreferencesForm = ({ onGenerate, stats }) => {
                   onClick={() => handleEquipmentToggle(key)}
                 >
                   <div className="equipment-icon">
-                    {info.icon && info.icon.endsWith && info.icon.endsWith('.svg') ? (
-                      <img src={info.icon} alt={info.name} style={{ width: 24, height: 24 }} />
+                    {info.icon &&
+                    info.icon.endsWith &&
+                    info.icon.endsWith('.svg') ? (
+                      <img
+                        src={info.icon}
+                        alt={info.name}
+                        style={{ width: 24, height: 24 }}
+                      />
                     ) : (
                       <span style={{ fontSize: '1.5rem' }}>{info.icon}</span>
                     )}
@@ -511,22 +585,46 @@ const PreferencesForm = ({ onGenerate, stats }) => {
 
           {/* Generate Button */}
           <div style={{ position: 'relative' }}>
-        <button 
-          type="submit" 
-          className="btn generate-btn" 
-          disabled={isGenerating}
-          style={{ width: '100%', marginTop: '1rem' }}
-        >
-          {isGenerating ? (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                  <div className="spinner" style={{ width: '1.2rem', height: '1.2rem', margin: '0 0.5rem 0 0', border: '2px solid white', borderTopColor: 'transparent' }}></div>
+            <button
+              type="submit"
+              className="btn generate-btn"
+              disabled={isGenerating}
+              style={{ width: '100%', marginTop: '1rem' }}
+            >
+              {isGenerating ? (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '100%',
+                  }}
+                >
+                  <div
+                    className="spinner"
+                    style={{
+                      width: '1.2rem',
+                      height: '1.2rem',
+                      margin: '0 0.5rem 0 0',
+                      border: '2px solid white',
+                      borderTopColor: 'transparent',
+                    }}
+                  ></div>
                   <span>Generating Routine...</span>
                 </div>
               ) : (
                 <>
-                  <span style={{ fontSize: '1.1rem' }}>Generate My Routine</span>
+                  <span style={{ fontSize: '1.1rem' }}>
+                    Generate My Routine
+                  </span>
                   {profile && (
-                    <span style={{ fontSize: '0.75rem', fontWeight: 'normal', opacity: 0.9 }}>
+                    <span
+                      style={{
+                        fontSize: '0.75rem',
+                        fontWeight: 'normal',
+                        opacity: 0.9,
+                      }}
+                    >
                       (Uses 1 Credit • {profile.credits} remaining)
                     </span>
                   )}
@@ -534,16 +632,41 @@ const PreferencesForm = ({ onGenerate, stats }) => {
               )}
             </button>
             {profile && profile.credits <= 0 && (
-              <p style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '0.5rem', textAlign: 'center', fontWeight: 'bold' }}>
+              <p
+                style={{
+                  color: '#ef4444',
+                  fontSize: '0.8rem',
+                  marginTop: '0.5rem',
+                  textAlign: 'center',
+                  fontWeight: 'bold',
+                }}
+              >
                 ⚠️ You've used all your free credits.
               </p>
             )}
           </div>
 
           {isSaved && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1rem', justifyContent: 'center' }}>
-              <EvaIcon name="checkmark-circle-2-outline" style={{ color: '#22c55e', fontSize: 32 }} titleAccess="Saved!" />
-              <button type="button" className="btn btn-secondary" onClick={handleReset} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '1rem',
+                marginTop: '1rem',
+                justifyContent: 'center',
+              }}
+            >
+              <EvaIcon
+                name="checkmark-circle-2-outline"
+                style={{ color: '#22c55e', fontSize: 32 }}
+                titleAccess="Saved!"
+              />
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={handleReset}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              >
                 <EvaIcon name="refresh-outline" style={{ fontSize: 28 }} />
               </button>
             </div>
@@ -551,7 +674,7 @@ const PreferencesForm = ({ onGenerate, stats }) => {
         </>
       )}
     </form>
-  )
-}
+  );
+};
 
-export default PreferencesForm
+export default PreferencesForm;
