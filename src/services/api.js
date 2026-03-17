@@ -340,49 +340,61 @@ export async function generateAIRoutine(preferences) {
   console.log('🎯 generateAIRoutine called with:', preferences);
 
   const aiProvider = getAIProvider();
-  console.log('🤖 AI Provider:', aiProvider);
+  console.log('🤖 Active AI Provider:', aiProvider);
 
+  // 1. Try AWS Bedrock if selected
   if (aiProvider === 'bedrock') {
     try {
-      console.log('🚀 Using AWS Bedrock...');
+      console.log('🚀 Attempting AWS Bedrock generation...');
       const bedrockRoutine = await generateBedrockRoutine(preferences);
-      console.log('✅ AWS Bedrock Success:', bedrockRoutine);
-      return bedrockRoutine;
+      if (bedrockRoutine && bedrockRoutine.exercises && bedrockRoutine.exercises.length > 0) {
+        console.log('✅ AWS Bedrock Success:', bedrockRoutine);
+        return bedrockRoutine;
+      }
+      throw new Error('Bedrock returned an empty or invalid routine structure');
     } catch (error) {
       console.error('❌ AWS Bedrock failed:', error);
-      console.warn('⚠️ Falling back to OpenRouter:', error.message);
-      // Fall through to OpenRouter
+      console.warn('⚠️ Falling back from Bedrock due to error:', error.message);
+      // If Bedrock was explicitly chosen and failed, we should know why
     }
   }
 
-  // Try StretchGPT V3 first if selected
-  if (aiProvider === 'stretchgpt') {
+  // 2. Try StretchGPT V3 (HuggingFace) if selected or as fallback
+  if (aiProvider === 'stretchgpt' || aiProvider === 'bedrock') {
     const hfToken = getHuggingFaceToken();
-    console.log(
-      '🔑 HuggingFace token exists:',
-      !!hfToken,
-      hfToken ? `(${hfToken.substring(0, 10)}...)` : '(none)'
-    );
-
+    
     if (hfToken) {
       try {
-        console.log('🚀 Using StretchGPT V3...');
+        console.log('🚀 Attempting StretchGPT V3 (HuggingFace) generation...');
         const v3Routine = await generateStretchGPTV3Routine(preferences);
         const flattenedRoutine = flattenV3Routine(v3Routine);
-        console.log('✅ StretchGPT V3 Success:', flattenedRoutine);
-        return flattenedRoutine;
+        if (flattenedRoutine && flattenedRoutine.exercises && flattenedRoutine.exercises.length > 0) {
+          console.log('✅ StretchGPT V3 Success:', flattenedRoutine);
+          return flattenedRoutine;
+        }
+        throw new Error('StretchGPT returned an empty or invalid routine');
       } catch (error) {
         console.error('❌ StretchGPT V3 failed:', error);
-        console.warn('⚠️ Falling back to OpenRouter:', error.message);
-        // Fall through to OpenRouter
+        console.warn('⚠️ Falling back from StretchGPT:', error.message);
       }
     } else {
-      console.warn('⚠️ No HuggingFace token, falling back to OpenRouter');
+      console.log('ℹ️ Skipping StretchGPT: No HuggingFace token configured');
     }
   }
 
-  console.log('🔄 Attempting OpenRouter...');
-  return generateOpenRouterRoutine(preferences);
+  // 3. Final AI Fallback: OpenRouter
+  console.log('🔄 Attempting OpenRouter as final AI fallback...');
+  try {
+    const openRouterRoutine = await generateOpenRouterRoutine(preferences);
+    if (openRouterRoutine && openRouterRoutine.exercises && openRouterRoutine.exercises.length > 0) {
+      console.log('✅ OpenRouter Success:', openRouterRoutine);
+      return openRouterRoutine;
+    }
+    throw new Error('OpenRouter returned an empty or invalid routine');
+  } catch (error) {
+    console.error('❌ All AI providers failed. Error:', error.message);
+    throw new Error(`AI Generation failed: ${error.message}. The app will use a high-quality local routine instead.`);
+  }
 }
 
 // ============================================
