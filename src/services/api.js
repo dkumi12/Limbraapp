@@ -26,7 +26,7 @@ const getAIProvider = () => {
 };
 
 const getAwsModelId = () =>
-  import.meta.env.VITE_AWS_MODEL_ID || 'mistral.mistral-small-2402-v1:0';
+  import.meta.env.VITE_AWS_MODEL_ID || 'anthropic.claude-3-haiku-20240307-v1:0';
 
 // API Endpoints
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
