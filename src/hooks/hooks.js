@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { syncUserStats } from '../services/supabase';
 
 export function useTimer(initialTime = 0) {
   const [time, setTime] = useState(initialTime);
@@ -121,7 +122,7 @@ export function useLocalStorage(key, initialValue) {
   return [storedValue, setValue];
 }
 
-export function useRoutineStats() {
+export function useRoutineStats(userId) {
   const [stats, setStats] = useLocalStorage('stretchEasyStats', {
     totalSessions: 0,
     totalTimeSpent: 0,
@@ -168,7 +169,10 @@ export function useRoutineStats() {
         date: today,
         duration: routineData.duration,
         exercises: routineData.exercises?.length || 0,
-        goals: routineData.goals || []
+        goals: routineData.goals || [],
+        routineId: routineData.id || `routine_${Date.now()}`,
+        routineName: routineData.name || 'AI Generated Routine',
+        fullRoutineData: routineData // Store the full routine data here
       });
       
       // Keep only last 30 sessions
@@ -176,9 +180,14 @@ export function useRoutineStats() {
         newStats.completedRoutines = newStats.completedRoutines.slice(-30);
       }
       
+      // Sync with Supabase if userId is provided
+      if (userId) {
+        syncUserStats(userId, newStats);
+      }
+      
       return newStats;
     });
-  }, [stats.lastSessionDate, setStats]);
+  }, [stats.lastSessionDate, setStats, userId]);
 
   return { stats, updateStats };
 }

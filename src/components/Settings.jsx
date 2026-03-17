@@ -1,19 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import EvaIcon from './EvaIcon';
+import { useAuth } from '../hooks';
 
 const Settings = ({ onClose }) => {
-  const [openRouterKey, setOpenRouterKey] = useState('')
-  const [youtubeKey, setYoutubeKey] = useState('')
-  const [hfToken, setHfToken] = useState('')
-  const [awsAccessKey, setAwsAccessKey] = useState('')
-  const [awsSecretKey, setAwsSecretKey] = useState('')
-  const [awsRegion, setAwsRegion] = useState('')
-  const [awsModelId, setAwsModelId] = useState('')
-  const [selectedModel, setSelectedModel] = useState('')
-  const [aiProvider, setAiProvider] = useState('stretchgpt')
-  const [availableModels, setAvailableModels] = useState([])
-  const [loadingModels, setLoadingModels] = useState(false)
-  const [showInstructions, setShowInstructions] = useState(false)
+  const { user, profile } = useAuth();
   const [saveStatus, setSaveStatus] = useState('')
   const [showSaveConfirmation, setShowSaveConfirmation] = useState(false);
 
@@ -26,144 +16,11 @@ const Settings = ({ onClose }) => {
     }
   }, [showSaveConfirmation]);
 
-  useEffect(() => {
-    // Load saved keys and model from localStorage
-    const savedOpenRouterKey = localStorage.getItem('openrouter_api_key') || ''
-    const savedYoutubeKey = localStorage.getItem('youtube_api_key') || ''
-    const savedHfToken = localStorage.getItem('hf_access_token') || ''
-    const savedAwsAccessKey = localStorage.getItem('aws_access_key') || ''
-    const savedAwsSecretKey = localStorage.getItem('aws_secret_key') || ''
-    const savedAwsRegion = localStorage.getItem('aws_region') || 'us-east-1'
-    const savedAwsModelId = localStorage.getItem('aws_model_id') || 'mistral.mistral-small-2402-v1:0'
-    const savedModel = localStorage.getItem('selected_model') || 'anthropic/claude-3-haiku'
-    const savedProvider = localStorage.getItem('ai_provider') || 'stretchgpt'
-    
-    setOpenRouterKey(savedOpenRouterKey)
-    setYoutubeKey(savedYoutubeKey)
-    setHfToken(savedHfToken)
-    setAwsAccessKey(savedAwsAccessKey)
-    setAwsSecretKey(savedAwsSecretKey)
-    setAwsRegion(savedAwsRegion)
-    setAwsModelId(savedAwsModelId)
-    setSelectedModel(savedModel)
-    setAiProvider(savedProvider)
-    
-    // Load models if we have an API key
-    if (savedOpenRouterKey) {
-      loadOpenRouterModels(savedOpenRouterKey)
-    }
-  }, [])
-
-  const loadOpenRouterModels = async (apiKey) => {
-    setLoadingModels(true)
-    try {
-      const response = await fetch('https://openrouter.ai/api/v1/models', {
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': window.location.origin,
-          'X-Title': 'Limbra App'
-        }
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch models')
-      }
-      
-      const data = await response.json()
-      const models = data.data || []
-      
-      // Filter and sort models for stretching/fitness use cases
-      const filteredModels = models
-        .filter(model => model.id && !model.id.includes('vision'))
-        .sort((a, b) => {
-          // Prioritize popular models
-          const priorityModels = ['gpt-4', 'gpt-3.5', 'claude', 'mistral']
-          const aPriority = priorityModels.some(p => a.id.toLowerCase().includes(p))
-          const bPriority = priorityModels.some(p => b.id.toLowerCase().includes(p))
-          
-          if (aPriority && !bPriority) return -1
-          if (!aPriority && bPriority) return 1
-          
-          return a.id.localeCompare(b.id)
-        })
-      
-      setAvailableModels(filteredModels)
-    } catch (error) {
-      console.error('Error loading models:', error)
-      // Fallback to default models
-      setAvailableModels([
-        { id: 'anthropic/claude-3-haiku', name: 'Claude 3 Haiku' },
-        { id: 'openai/gpt-3.5-turbo', name: 'GPT-3.5 Turbo' },
-        { id: 'openai/gpt-4', name: 'GPT-4' },
-        { id: 'mistralai/mistral-7b-instruct', name: 'Mistral 7B' }
-      ])
-    } finally {
-      setLoadingModels(false)
-    }
-  }
-
-  const handleSave = () => {
-    // Save HuggingFace token
-    if (hfToken) {
-      localStorage.setItem('hf_access_token', hfToken)
-    } else {
-      localStorage.removeItem('hf_access_token')
-    }
-
-    // Save AWS Bedrock credentials
-    if (awsAccessKey) localStorage.setItem('aws_access_key', awsAccessKey)
-    else localStorage.removeItem('aws_access_key')
-    
-    if (awsSecretKey) localStorage.setItem('aws_secret_key', awsSecretKey)
-    else localStorage.removeItem('aws_secret_key')
-    
-    if (awsRegion) localStorage.setItem('aws_region', awsRegion)
-    if (awsModelId) localStorage.setItem('aws_model_id', awsModelId)
-    
-    // Save AI provider preference
-    localStorage.setItem('ai_provider', aiProvider)
-    
-    // Save OpenRouter key
-    if (openRouterKey) {
-      localStorage.setItem('openrouter_api_key', openRouterKey)
-    } else {
-      localStorage.removeItem('openrouter_api_key')
-    }
-    
-    // Save YouTube key
-    if (youtubeKey) {
-      localStorage.setItem('youtube_api_key', youtubeKey)
-    } else {
-      localStorage.removeItem('youtube_api_key')
-    }
-    
-    if (selectedModel) {
-      localStorage.setItem('selected_model', selectedModel)
-    }
-    
-    setSaveStatus('Settings saved successfully!')
-    setTimeout(() => setSaveStatus(''), 3000)
-    
-    // Reload models if API key changed
-    if (openRouterKey) {
-      loadOpenRouterModels(openRouterKey)
-    }
-  }
-
   const handleExportData = () => {
     const data = {
       preferences: JSON.parse(localStorage.getItem('routine_preferences') || '{}'),
       stats: JSON.parse(localStorage.getItem('routine_stats') || '{}'),
       savedRoutines: JSON.parse(localStorage.getItem('saved_routines') || '[]'),
-      settings: {
-        selectedModel,
-        aiProvider,
-        hasKeys: {
-          openRouter: !!openRouterKey,
-          youtube: !!youtubeKey,
-          huggingFace: !!hfToken
-        }
-      }
     }
     
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -227,280 +84,22 @@ const Settings = ({ onClose }) => {
         </div>
       </header>
 
-      <div className="settings-content" style={{ padding: '1.5rem', maxWidth: '600px', margin: '0 auto' }}>
+      <div className="settings-content" style={{ padding: '1.5rem', maxWidth: '600px', margin: '0 auto', paddingBottom: '80px' }}>
         
-        {/* AI Provider Selection */}
-        <div className="settings-card">
-          <h2 className="settings-section-title">🤖 AI Provider</h2>
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-            <button
-              className={`settings-btn ${aiProvider === 'stretchgpt' ? 'settings-btn-primary' : 'settings-btn-secondary'}`}
-              onClick={() => setAiProvider('stretchgpt')}
-              style={{ flex: 1, padding: '1rem', textAlign: 'center' }}
-            >
-              <strong>StretchGPT V3</strong>
-              <br />
-              <small style={{ opacity: 0.8 }}>Your custom model</small>
-            </button>
-            <button
-              className={`settings-btn ${aiProvider === 'openrouter' ? 'settings-btn-primary' : 'settings-btn-secondary'}`}
-              onClick={() => setAiProvider('openrouter')}
-              style={{ flex: 1, padding: '1rem', textAlign: 'center' }}
-            >
-              <strong>OpenRouter</strong>
-              <br />
-              <small style={{ opacity: 0.8 }}>GPT-4, Claude, etc.</small>
-            </button>
-            <button
-              className={`settings-btn ${aiProvider === 'bedrock' ? 'settings-btn-primary' : 'settings-btn-secondary'}`}
-              onClick={() => setAiProvider('bedrock')}
-              style={{ flex: 1, padding: '1rem', textAlign: 'center' }}
-            >
-              <strong>AWS Bedrock</strong>
-              <br />
-              <small style={{ opacity: 0.8 }}>Mistral AI Models</small>
-            </button>
-          </div>
-          <p className="settings-hint" style={{ 
-            background: aiProvider === 'stretchgpt' ? 'rgba(34, 197, 94, 0.1)' : aiProvider === 'bedrock' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(59, 130, 246, 0.1)',
-            padding: '0.75rem',
-            borderRadius: '8px',
-            marginTop: '0.5rem'
-          }}>
-            {aiProvider === 'stretchgpt' 
-              ? '✅ Using your fine-tuned StretchGPT model (faster, cheaper, specialized for stretching)'
-              : aiProvider === 'bedrock'
-              ? '☁️ Using AWS Bedrock (enterprise security, efficient models like Mistral Small)'
-              : '☁️ Using cloud AI via OpenRouter (more variety, requires API key and credits)'
-            }
-          </p>
-        </div>
-
-        {/* HuggingFace Token (shown when StretchGPT selected) */}
-        {aiProvider === 'stretchgpt' && (
-          <div className="settings-card">
-            <h2 className="settings-section-title">🤗 HuggingFace Configuration</h2>
-            <div className="form-group">
-              <label className="form-label">HuggingFace Access Token</label>
-              <input
-                type="password"
-                className="settings-input"
-                value={hfToken}
-                onChange={(e) => setHfToken(e.target.value)}
-                placeholder="hf_..."
-              />
-              <p className="settings-hint">
-                Get your token from{' '}
-                <a 
-                  href="https://huggingface.co/settings/tokens" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  style={{ color: '#22c55e' }}
-                >
-                  huggingface.co/settings/tokens
-                </a>
-              </p>
-              <p className="settings-hint" style={{ marginTop: '0.5rem', color: '#f59e0b' }}>
-                ⚠️ <strong>Important:</strong> Token needs "Write" access for inference API
-              </p>
+        {/* User Account Info */}
+        <div className="settings-card" style={{ background: 'linear-gradient(135deg, #ffffff, #f8fafc)', border: '1px solid #e2e8f0' }}>
+          <h2 className="settings-section-title">👤 Account</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+            <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--primary-green)', display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'white', fontWeight: 'bold', fontSize: '1.2rem' }}>
+              {user?.email?.[0].toUpperCase()}
             </div>
-            <div style={{ 
-              background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.1))', 
-              padding: '1rem', 
-              borderRadius: '8px',
-              marginTop: '1rem',
-              border: '1px solid rgba(34, 197, 94, 0.2)'
-            }}>
-              <strong style={{ color: '#22c55e' }}>🎉 Your Model:</strong>
-              <br />
-              <code style={{ 
-                background: 'rgba(0,0,0,0.2)', 
-                padding: '0.25rem 0.5rem', 
-                borderRadius: '4px',
-                fontSize: '0.875rem'
-              }}>
-                dkumi12/stretchgptv2
-              </code>
-              <br />
-              <small style={{ opacity: 0.8, marginTop: '0.5rem', display: 'block' }}>
-                Fine-tuned Llama-3-8B for personalized stretching routines with 4-phase structure
-              </small>
+            <div>
+              <div style={{ fontWeight: 'bold', color: '#1e293b' }}>{user?.email}</div>
+              <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                {profile?.credits || 0} Routine Credits Available
+              </div>
             </div>
           </div>
-        )}
-
-        {/* OpenRouter Configuration (shown when OpenRouter selected) */}
-        {aiProvider === 'openrouter' && (
-          <div className="settings-card">
-            <h2 className="settings-section-title">🔑 OpenRouter Configuration</h2>
-            <div className="form-group">
-              <label className="form-label">OpenRouter API Key</label>
-              <input
-                type="password"
-                className="settings-input"
-                value={openRouterKey}
-                onChange={(e) => setOpenRouterKey(e.target.value)}
-                placeholder="sk-or-..."
-              />
-              <p className="settings-hint">
-                Get your key from{' '}
-                <a 
-                  href="https://openrouter.ai/keys" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  style={{ color: '#22c55e' }}
-                >
-                  openrouter.ai/keys
-                </a>
-              </p>
-            </div>
-            <div className="form-group" style={{ marginTop: '1rem' }}>
-              <label className="form-label">AI Model</label>
-              <select
-                className="settings-input"
-                value={selectedModel}
-                onChange={(e) => setSelectedModel(e.target.value)}
-                disabled={!openRouterKey}
-              >
-                {loadingModels ? (
-                  <option>Loading available models...</option>
-                ) : (
-                  availableModels.length > 0 ? (
-                    availableModels.map(model => (
-                      <option key={model.id} value={model.id}>
-                        {model.name || model.id}
-                      </option>
-                    ))
-                  ) : (
-                    <option value="">Enter API key to load models</option>
-                  )
-                )}
-              </select>
-            </div>
-          </div>
-        )}
-
-        {/* AWS Bedrock Configuration (shown when Bedrock selected) */}
-        {aiProvider === 'bedrock' && (
-          <div className="settings-card">
-            <h2 className="settings-section-title">☁️ AWS Bedrock Configuration</h2>
-            <div className="form-group">
-              <label className="form-label">AWS Access Key ID</label>
-              <input
-                type="text"
-                className="settings-input"
-                value={awsAccessKey}
-                onChange={(e) => setAwsAccessKey(e.target.value)}
-                placeholder="AKIA..."
-              />
-            </div>
-            <div className="form-group" style={{ marginTop: '1rem' }}>
-              <label className="form-label">AWS Secret Access Key</label>
-              <input
-                type="password"
-                className="settings-input"
-                value={awsSecretKey}
-                onChange={(e) => setAwsSecretKey(e.target.value)}
-                placeholder="..."
-              />
-            </div>
-            <div className="form-group" style={{ marginTop: '1rem' }}>
-              <label className="form-label">AWS Region</label>
-              <input
-                type="text"
-                className="settings-input"
-                value={awsRegion}
-                onChange={(e) => setAwsRegion(e.target.value)}
-                placeholder="us-east-1"
-              />
-            </div>
-            <div className="form-group" style={{ marginTop: '1rem' }}>
-              <label className="form-label">Model ID</label>
-              <input
-                type="text"
-                className="settings-input"
-                value={awsModelId}
-                onChange={(e) => setAwsModelId(e.target.value)}
-                placeholder="mistral.mistral-small-2402-v1:0"
-              />
-              <p className="settings-hint" style={{ marginTop: '0.5rem', wordBreak: 'break-all' }}>
-                Common models: <code>mistral.mistral-small-2402-v1:0</code>, <code>meta.llama3-8b-instruct-v1:0</code>, <code>anthropic.claude-3-haiku-20240307-v1:0</code>
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* YouTube API Section */}
-        <div className="settings-card">
-          <h2 className="settings-section-title">📺 YouTube Videos</h2>
-          <div className="form-group">
-            <label className="form-label">YouTube API Key</label>
-            <input
-              type="password"
-              className="settings-input"
-              value={youtubeKey}
-              onChange={(e) => setYoutubeKey(e.target.value)}
-              placeholder="AIza..."
-            />
-            <p className="settings-hint">
-              Get your key from{' '}
-              <a 
-                href="https://console.cloud.google.com/apis/credentials" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                style={{ color: '#22c55e' }}
-              >
-                Google Cloud Console
-              </a>
-            </p>
-            <p className="settings-hint" style={{ marginTop: '0.5rem' }}>
-              Required for exercise demonstration videos
-            </p>
-          </div>
-        </div>
-
-        {/* Setup Instructions */}
-        <div className="settings-card">
-          <button
-            className="settings-btn settings-btn-secondary"
-            onClick={() => setShowInstructions(!showInstructions)}
-            style={{ width: '100%' }}
-          >
-            {showInstructions ? '▼ Hide' : '▶ Show'} Setup Instructions
-          </button>
-          {showInstructions && (
-            <div className="settings-instructions" style={{ 
-              marginTop: '1rem', 
-              padding: '1rem', 
-              background: 'rgba(255,255,255,0.05)',
-              borderRadius: '8px'
-            }}>
-              <h3 style={{ color: '#22c55e', marginBottom: '0.5rem' }}>StretchGPT Setup:</h3>
-              <ol style={{ paddingLeft: '1.25rem', marginBottom: '1rem' }}>
-                <li>Go to huggingface.co and sign up/login</li>
-                <li>Go to Settings → Access Tokens</li>
-                <li>Create a new token with <strong>Write</strong> access</li>
-                <li>Paste it above and select "StretchGPT V3"</li>
-              </ol>
-              
-              <h3 style={{ color: '#22c55e', marginBottom: '0.5rem' }}>OpenRouter Setup (Alternative):</h3>
-              <ol style={{ paddingLeft: '1.25rem', marginBottom: '1rem' }}>
-                <li>Go to openrouter.ai and sign up</li>
-                <li>Add credits to your account ($5 is plenty)</li>
-                <li>Generate an API key</li>
-                <li>Paste it above and select "OpenRouter"</li>
-              </ol>
-
-              <h3 style={{ color: '#22c55e', marginBottom: '0.5rem' }}>YouTube API Setup:</h3>
-              <ol style={{ paddingLeft: '1.25rem' }}>
-                <li>Go to Google Cloud Console</li>
-                <li>Create a new project</li>
-                <li>Enable YouTube Data API v3</li>
-                <li>Create credentials (API Key)</li>
-                <li>Paste it above</li>
-              </ol>
-            </div>
-          )}
         </div>
 
         {/* Data Management Section */}
@@ -526,7 +125,7 @@ const Settings = ({ onClose }) => {
               onClick={handleClearData}
               style={{ flex: '1 1 100%', marginTop: '0.5rem' }}
             >
-              Clear All Data
+              Clear Local Cache
             </button>
           </div>
         </div>
@@ -544,35 +143,35 @@ const Settings = ({ onClose }) => {
           </div>
         )}
 
-        {/* Save Button */}
-        <button 
-          className="settings-btn settings-btn-primary" 
-          onClick={() => {
-            handleSave();
-            setShowSaveConfirmation(true);
-          }}
-          style={{ marginTop: '2rem', width: '100%', padding: '1rem', fontSize: '1.1rem' }}
-        >
-          {showSaveConfirmation ? (
-            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-              <EvaIcon name="checkmark-circle-2-outline" width={22} height={22} fill="white" />
-              Saved!
-            </span>
-          ) : (
-            <span>Save Settings</span>
-          )}
-        </button>
-
         {/* Version Info */}
         <div style={{ 
           textAlign: 'center', 
-          marginTop: '2rem', 
+          marginTop: '3rem', 
           opacity: 0.5, 
           fontSize: '0.75rem' 
         }}>
-          Limbra v2.0 • StretchGPT V3 Integration
+          Limbra v2.1 • Supabase & Credits Beta
         </div>
       </div>
+
+      <nav className="nav-bar">
+        <button className={`nav-item`} onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'home' }))}>
+          <EvaIcon name="home-outline" width={24} height={24} fill="#b0b8c9" />
+          <span style={{ color: '#b0b8c9' }}>Home</span>
+        </button>
+        <button className={`nav-item`} onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'saved' }))}>
+          <EvaIcon name="bookmark-outline" width={24} height={24} fill="#b0b8c9" />
+          <span style={{ color: '#b0b8c9' }}>Library</span>
+        </button>
+        <button className={`nav-item`} onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'profile' }))}>
+          <EvaIcon name="person-outline" width={24} height={24} fill="#b0b8c9" />
+          <span style={{ color: '#b0b8c9' }}>Profile</span>
+        </button>
+        <button className={`nav-item nav-item-active`}>
+          <EvaIcon name="settings-outline" width={24} height={24} fill="#22c55e" />
+          <span style={{ color: '#22c55e' }}>Settings</span>
+        </button>
+      </nav>
     </div>
   )
 }

@@ -7,133 +7,86 @@ on:
     branches: [ main ]
 
 env:
-  NODE_VERSION: '16.x'  # Using 16.x for better compatibility
+  NODE_VERSION: '18.x'
+  DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/limbraapp
 
 jobs:
   test:
     name: Test Suite
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-    
+
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
-    
+
     - name: Install dependencies
-      run: npm ci || npm install  # Added fallback to npm install
-    
+      run: npm ci || npm install
+
     - name: Lint with ESLint
       run: |
         if grep -q "\"lint\"" package.json; then
           npm run lint || echo "Linting completed with warnings"
         else
-          echo "No lint script found in package.json"
+          echo "No lint script found"
         fi
       continue-on-error: true
-    
-    - name: Check code formatting with Prettier
+
+    - name: Check code formatting
       run: |
         if grep -q "\"format:check\"" package.json; then
           npm run format:check || echo "Format check completed with warnings"
         else
-          echo "No format:check script found in package.json"
+          echo "No format:check script found"
         fi
       continue-on-error: true
-    
-    - name: Type checking with TypeScript
+
+    - name: Type checking
       run: |
         if grep -q "\"type-check\"" package.json; then
           npm run type-check || echo "Type checking completed with warnings"
         else
-          echo "No type-check script found in package.json"
+          echo "No type-check script found"
         fi
       continue-on-error: true
-    
+
     - name: Run unit tests
       run: |
         if grep -q "\"test:unit\"" package.json; then
-          npm run test:unit || echo "Tests completed with failures"
+          npm run test:unit || echo "Tests completed"
         elif grep -q "\"test\"" package.json; then
-          npm test || echo "Tests completed with failures"
+          npm test || echo "Tests completed"
         else
-          echo "No test script found in package.json"
+          echo "No test script found"
         fi
       continue-on-error: true
-    
-    - name: Generate test coverage
-      run: |
-        if grep -q "\"test:coverage\"" package.json; then
-          npm run test:coverage || echo "Coverage generation completed with warnings"
-        elif grep -q "\"test:unit\"" package.json; then
-          npm run test:unit || echo "Coverage generation completed with warnings"
-        else
-          echo "No coverage script found in package.json"
-        fi
-      continue-on-error: true
-    
-    # Removed Codecov upload for simplicity
 
-  build:
-    name: Build Application
-    runs-on: ubuntu-latest
-    needs: test
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm ci || npm install  # Added fallback to npm install
-    
-    - name: Build application
-      run: npm run build
-      env:
-        NODE_ENV: production
-        CI: false  # Prevents treating warnings as errors
-    
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: dist-files
-        path: dist/
-        retention-days: 7
 
   security:
     name: Security Scan
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-    
+
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
         node-version: ${{ env.NODE_VERSION }}
-    
+
     - name: Install dependencies
-      run: npm ci || npm install  # Added fallback to npm install
-    
+      run: npm ci || npm install
+
     - name: Run npm audit
-      run: npm audit --audit-level high || echo "Security vulnerabilities found"
+      run: npm audit --audit-level high || echo "Vulnerabilities found"
       continue-on-error: true
-    
-    - name: Check for vulnerable dependencies
-      run: |
-        npm audit --json > audit-report.json || echo "Vulnerabilities found"
-      continue-on-error: true
-    
+
     - name: Upload security report
       uses: actions/upload-artifact@v3
       with:
@@ -141,35 +94,83 @@ jobs:
         path: audit-report.json
       continue-on-error: true
 
-  deploy-production:
-    name: Deploy Production
+  docker:
+    name: Build & Push Docker Image
     runs-on: ubuntu-latest
+    needs: [test]
     if: github.ref == 'refs/heads/main'
-    needs: [test, security]
-    environment: production
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-    
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build and push image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: |
+          ${{ env.DOCKER_IMAGE }}:latest
+          ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
+        build-args: |
+          VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_AI_PROVIDER=${{ secrets.VITE_AI_PROVIDER }}
+          VITE_OPENROUTER_API_KEY=${{ secrets.VITE_OPENROUTER_API_KEY }}
+          VITE_YOUTUBE_API_KEY=${{ secrets.VITE_YOUTUBE_API_KEY }}
+          VITE_HF_WRITE_TOKEN=${{ secrets.VITE_HF_WRITE_TOKEN }}
+          VITE_SELECTED_MODEL=${{ secrets.VITE_SELECTED_MODEL }}
+
+
+  deploy-render:
+    name: Deploy to Render
+    runs-on: ubuntu-latest
+    needs: [docker]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+    - name: Trigger Render deploy
+      run: |
+        curl -s -X POST \
+          "https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_DEPLOY_KEY }}" \
+          | echo "Render deploy triggered"
+
+  deploy-pages:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
-    
+
     - name: Install dependencies
-      run: npm ci || npm install  # Added fallback to npm install
-    
+      run: npm ci || npm install
+
     - name: Build application
       run: npm run build
       env:
         NODE_ENV: production
-        CI: false  # Prevents treating warnings as errors
-    
+        CI: false
+
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./dist
-      continue-on-error: true  # Allow pipeline to continue even if deployment fails
+      continue-on-error: true

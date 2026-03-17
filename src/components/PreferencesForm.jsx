@@ -5,8 +5,10 @@ import EvaIcon from './EvaIcon';
 import StretchFigureLottie from './StretchFigureLottie';
 import MessageCarousel from './MessageCarousel';
 import ExerciseSearch from './ExerciseSearch/ExerciseSearch';
+import { useAuth } from '../hooks';
 
 const PreferencesForm = ({ onGenerate, stats }) => {
+  const { profile } = useAuth();
   const [duration, setDuration] = useState(10)
   const [goals, setGoals] = useState([])
   const [bodyParts, setBodyParts] = useState([])
@@ -508,29 +510,35 @@ const PreferencesForm = ({ onGenerate, stats }) => {
           </section>
 
           {/* Generate Button */}
-          <button 
-            type="submit" 
-            className="btn"
-            disabled={isGenerating || goals.length === 0}
-          >
-            {isGenerating ? (
-              <>
-                <span className="spinner" style={{ 
-                  display: 'inline-block',
-                  width: '16px',
-                  height: '16px',
-                  border: '2px solid white',
-                  borderTopColor: 'transparent',
-                  borderRadius: '50%',
-                  animation: 'spin 1s linear infinite',
-                  marginRight: '0.5rem'
-                }}></span>
-                Generating your routine...
-              </>
-            ) : (
-              <span>Generate My Routine</span>
+          <div style={{ position: 'relative' }}>
+        <button 
+          type="submit" 
+          className="btn generate-btn" 
+          disabled={isGenerating}
+          style={{ width: '100%', marginTop: '1rem' }}
+        >
+          {isGenerating ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                  <div className="spinner" style={{ width: '1.2rem', height: '1.2rem', margin: '0 0.5rem 0 0', border: '2px solid white', borderTopColor: 'transparent' }}></div>
+                  <span>Generating Routine...</span>
+                </div>
+              ) : (
+                <>
+                  <span style={{ fontSize: '1.1rem' }}>Generate My Routine</span>
+                  {profile && (
+                    <span style={{ fontSize: '0.75rem', fontWeight: 'normal', opacity: 0.9 }}>
+                      (Uses 1 Credit • {profile.credits} remaining)
+                    </span>
+                  )}
+                </>
+              )}
+            </button>
+            {profile && profile.credits <= 0 && (
+              <p style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '0.5rem', textAlign: 'center', fontWeight: 'bold' }}>
+                ⚠️ You've used all your free credits.
+              </p>
             )}
-          </button>
+          </div>
 
           {isSaved && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1rem', justifyContent: 'center' }}>

@@ -2,27 +2,66 @@ import React, { useState, useEffect } from 'react'
 import EvaIcon from './EvaIcon';
 import ExerciseLibrary from './ExerciseLibrary/ExerciseLibrary';
 import DatabaseRoutines from './DatabaseRoutines/DatabaseRoutines';
+import { supabase } from '../services/supabase';
+import { useAuth, useRoutineStats } from '../hooks';
 
 const SavedRoutines = ({ onSelectRoutine, onClose }) => {
+  const { user } = useAuth();
+  const { stats } = useRoutineStats();
   const [savedRoutines, setSavedRoutines] = useState([])
+  const [loading, setLoading] = useState(true)
   const [filterGoal, setFilterGoal] = useState('all')
   const [sortBy, setSortBy] = useState('date') // date, duration, name
-  const [activeTab, setActiveTab] = useState('routines') // routines, exercises, database
+  const [activeTab, setActiveTab] = useState('routines') // routines, exercises, database, history
 
   useEffect(() => {
-    loadSavedRoutines()
-  }, [])
+    if (user) {
+      loadSavedRoutines()
+    }
+  }, [user])
 
-  const loadSavedRoutines = () => {
-    const routines = JSON.parse(localStorage.getItem('savedRoutines') || '[]')
-    setSavedRoutines(routines)
+  const loadSavedRoutines = async () => {
+    try {
+      setLoading(true)
+      const { data, error } = await supabase
+        .from('routines')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      
+      // Transform Supabase data to match the component's expected format
+      const transformedRoutines = data.map(r => ({
+        id: r.id,
+        name: r.name,
+        savedAt: r.created_at,
+        ...r.routine_data
+      }))
+      
+      setSavedRoutines(transformedRoutines)
+    } catch (error) {
+      console.error('Error loading routines:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const deleteRoutine = (id) => {
+  const deleteRoutine = async (id) => {
     if (window.confirm('Are you sure you want to delete this routine?')) {
-      const updatedRoutines = savedRoutines.filter(r => r.id !== id)
-      localStorage.setItem('savedRoutines', JSON.stringify(updatedRoutines))
-      setSavedRoutines(updatedRoutines)
+      try {
+        const { error } = await supabase
+          .from('routines')
+          .delete()
+          .eq('id', id)
+
+        if (error) throw error
+        
+        setSavedRoutines(savedRoutines.filter(r => r.id !== id))
+      } catch (error) {
+        console.error('Error deleting routine:', error)
+        alert('Failed to delete routine.')
+      }
     }
   }
 
@@ -145,6 +184,22 @@ const SavedRoutines = ({ onSelectRoutine, onClose }) => {
         >
           Browse Routines
         </button>
+        <button 
+          className={`tab-button ${activeTab === 'history' ? 'active-tab' : ''}`}
+          onClick={() => setActiveTab('history')}
+          style={{
+            padding: '1rem',
+            flex: 1,
+            border: 'none',
+            backgroundColor: activeTab === 'history' ? 'rgba(34, 197, 94, 0.15)' : 'transparent',
+            cursor: 'pointer',
+            fontWeight: activeTab === 'history' ? '600' : '400',
+            color: activeTab === 'history' ? 'var(--primary-green)' : '#b0b8c9',
+            borderBottom: activeTab === 'history' ? '2px solid var(--primary-green)' : 'none'
+          }}
+        >
+          History
+        </button>
       </div>
     )
   }
@@ -156,10 +211,87 @@ const SavedRoutines = ({ onSelectRoutine, onClose }) => {
         return <ExerciseLibraryWrapper />;
       case 'database':
         return <DatabaseRoutinesWrapper />;
+      case 'history':
+        return renderHistory();
       case 'routines':
       default:
         return renderSavedRoutines();
     }
+  }
+
+  // History Content
+  const renderHistory = () => {
+    const history = stats.completedRoutines || [];
+    
+    if (history.length === 0) {
+      return (
+        <div style={{ textAlign: 'center', padding: '3rem', color: '#b0b8c9' }}>
+          <p style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>No history yet</p>
+          <p>Generate and complete routines to see them here.</p>
+        </div>
+      );
+    }
+
+    // Reverse history to show newest first
+    const reversedHistory = [...history].reverse();
+
+    return (
+      <div className="saved-content" style={{ padding: '1rem', maxWidth: '800px', margin: '0 auto', background: '#23293a', borderRadius: '0.75rem', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
+        <h2 style={{ color: 'white', marginBottom: '1.5rem', fontSize: '1.2rem' }}>Recently Completed Routines</h2>
+        <div className="routines-grid" style={{ 
+          display: 'grid', 
+          gap: '1rem',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))'
+        }}>
+          {reversedHistory.map((item, index) => (
+            <div 
+              key={index} 
+              className="routine-card"
+              style={{
+                background: '#1a2031',
+                padding: '1.25rem',
+                borderRadius: '12px',
+                border: '1px solid #2d3448',
+                color: 'white',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: '#b0b8c9', fontSize: '0.8rem' }}>{item.date}</span>
+                <span style={{ background: '#0f172a', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', color: 'var(--primary-green)' }}>
+                  {item.fullRoutineData?.source === 'ai' ? 'AI Generated' : 'Database'}
+                </span>
+              </div>
+              <h3 style={{ fontSize: '1.1rem', margin: '0.5rem 0' }}>{item.routineName || 'Completed Routine'}</h3>
+              
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                {item.goals?.map(goal => (
+                  <span key={goal} style={{ background: '#334155', color: '#f8fafc', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.7rem' }}>
+                    {goal}
+                  </span>
+                ))}
+              </div>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid #2d3448', fontSize: '0.85rem', color: '#cbd5e1' }}>
+                <span>⏱️ {formatDuration(item.duration)}</span>
+                <span>💪 {item.exercises} exercises</span>
+              </div>
+
+              {item.fullRoutineData && (
+                <button 
+                  onClick={() => onSelectRoutine(item.fullRoutineData)}
+                  style={{ marginTop: '0.5rem', background: 'var(--primary-green)', color: 'white', border: 'none', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  Do it again
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
   
   // Wrapper components to ensure consistent styling
@@ -181,6 +313,14 @@ const SavedRoutines = ({ onSelectRoutine, onClose }) => {
 
   // Saved routines content
   const renderSavedRoutines = () => {
+    if (loading) {
+      return (
+        <div style={{ textAlign: 'center', padding: '3rem', color: '#b0b8c9' }}>
+          <div className="loader">Loading your library...</div>
+        </div>
+      );
+    }
+    
     return (
       <div className="saved-content" style={{ padding: '1rem', maxWidth: '800px', margin: '0 auto', background: '#23293a', borderRadius: '0.75rem', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
         {/* Filters and Sorting */}
