@@ -102,12 +102,10 @@ export default async function handler(req, res) {
       return res.status(200).json({ responseText });
     } catch (error) {
       console.error('Bedrock serverless error:', error);
-      return res
-        .status(500)
-        .json({
-          error: 'Failed to generate from Bedrock',
-          details: error.message,
-        });
+      return res.status(500).json({
+        error: 'Failed to generate from Bedrock',
+        details: error.message,
+      });
     }
   }
 
