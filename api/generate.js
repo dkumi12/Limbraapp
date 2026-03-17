@@ -23,6 +23,8 @@ export default async function handler(req, res) {
 
   const { provider, prompt, parameters, modelId } = req.body;
 
+  console.log(`🤖 Proxy request - Provider: ${provider || 'default (hf)'}, Model: ${modelId || 'n/a'}`);
+
   // --- AWS BEDROCK PROXY ---
   if (provider === 'bedrock') {
     const accessKeyId =
@@ -32,7 +34,10 @@ export default async function handler(req, res) {
     const region =
       process.env.AWS_REGION || process.env.VITE_AWS_REGION || 'us-east-1';
 
+    console.log(`🔑 Bedrock config: Region=${region}, AccessKey=${accessKeyId ? 'EXISTS (' + accessKeyId.substring(0, 5) + '...)' : 'MISSING'}, SecretKey=${secretAccessKey ? 'EXISTS' : 'MISSING'}`);
+
     if (!accessKeyId || !secretAccessKey) {
+      console.error('❌ AWS credentials missing from environment');
       return res
         .status(500)
         .json({ error: 'AWS credentials not configured on server' });
