@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabase';
 import EvaIcon from './EvaIcon';
 
@@ -6,10 +6,22 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [authState, setAuthState] = useState('signIn'); // 'signIn', 'signUp', 'forgotPassword'
+  const [authState, setAuthState] = useState('signIn'); // 'signIn', 'signUp', 'forgotPassword', 'updatePassword'
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
+
+  // Listen for recovery event
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setAuthState('updatePassword');
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleAuth = async e => {
     e.preventDefault();
@@ -42,8 +54,16 @@ const Auth = () => {
         });
         if (error) throw error;
         setMessage('Password reset link has been sent to your email.');
+      } else if (authState === 'updatePassword') {
+        const { error } = await supabase.auth.updateUser({
+          password: newPassword
+        });
+        if (error) throw error;
+        setMessage('Password updated successfully! You can now sign in.');
+        setAuthState('signIn');
       }
     } catch (error) {
+      console.error('Auth error:', error);
       setError(error.message);
     } finally {
       setLoading(false);
@@ -135,14 +155,14 @@ const Auth = () => {
                 ? 'Create your account'
                 : authState === 'signIn'
                   ? 'Welcome back'
-                  : 'Reset Password'}
+                  : authState === 'forgotPassword' ? 'Reset Password' : 'Update Password'}
             </h2>
             <p style={{ fontSize: '0.875rem', color: '#64748b' }}>
               {authState === 'signUp'
                 ? 'Join Limbra to start your personalized wellness journey'
                 : authState === 'signIn'
                   ? 'Sign in to access your personalized routines'
-                  : 'Enter your email to receive a password reset link'}
+                  : authState === 'forgotPassword' ? 'Enter your email to receive a password reset link' : 'Enter your new password below'}
             </p>
           </div>
 
@@ -194,7 +214,7 @@ const Auth = () => {
               />
               <div style={{ flex: 1 }}>
                 {error}
-                {error.includes('Email not confirmed') && (
+                {error.toLowerCase().includes('email not confirmed') && (
                   <button
                     onClick={handleResendConfirmation}
                     style={{
@@ -264,49 +284,95 @@ const Auth = () => {
               </div>
             )}
 
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  color: '#64748b',
-                  marginBottom: '0.5rem',
-                  textTransform: 'uppercase',
-                }}
-              >
-                Email Address
-              </label>
-              <div style={{ position: 'relative' }}>
-                <span
+            {authState !== 'updatePassword' && (
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label
                   style={{
-                    position: 'absolute',
-                    left: '1rem',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    color: '#94a3b8',
+                    display: 'block',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    color: '#64748b',
+                    marginBottom: '0.5rem',
+                    textTransform: 'uppercase',
                   }}
                 >
-                  <EvaIcon
-                    name="email-outline"
-                    width={20}
-                    height={20}
-                    fill="currentColor"
+                  Email Address
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <span
+                    style={{
+                      position: 'absolute',
+                      left: '1rem',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: '#94a3b8',
+                    }}
+                  >
+                    <EvaIcon
+                      name="email-outline"
+                      width={20}
+                      height={20}
+                      fill="currentColor"
+                    />
+                  </span>
+                  <input
+                    type="email"
+                    placeholder="name@example.com"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    required
+                    className="form-input"
+                    style={{ paddingLeft: '2.75rem' }}
                   />
-                </span>
-                <input
-                  type="email"
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                  className="form-input"
-                  style={{ paddingLeft: '2.75rem' }}
-                />
+                </div>
               </div>
-            </div>
+            )}
 
-            {authState !== 'forgotPassword' && (
+            {authState === 'updatePassword' && (
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    color: '#64748b',
+                    marginBottom: '0.5rem',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  New Password
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <span
+                    style={{
+                      position: 'absolute',
+                      left: '1rem',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: '#94a3b8',
+                    }}
+                  >
+                    <EvaIcon
+                      name="lock-outline"
+                      width={20}
+                      height={20}
+                      fill="currentColor"
+                    />
+                  </span>
+                  <input
+                    type="password"
+                    placeholder="Enter your new password"
+                    value={newPassword}
+                    onChange={e => setNewPassword(e.target.value)}
+                    required
+                    className="form-input"
+                    style={{ paddingLeft: '2.75rem' }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {(authState === 'signIn' || authState === 'signUp') && (
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <div
                   style={{
@@ -411,8 +477,10 @@ const Auth = () => {
                 'Create Account'
               ) : authState === 'signIn' ? (
                 'Sign In'
-              ) : (
+              ) : authState === 'forgotPassword' ? (
                 'Send Reset Link'
+              ) : (
+                'Update Password'
               )}
             </button>
           </form>
