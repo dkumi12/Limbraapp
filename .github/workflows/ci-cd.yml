@@ -134,16 +134,34 @@ jobs:
 
     steps:
       - name: Trigger Render deploy
+        env:
+          SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+          DEPLOY_KEY: ${{ secrets.RENDER_DEPLOY_KEY }}
         run: |
-          response=$(curl -s -w "\n%{http_code}" -X POST "https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_DEPLOY_KEY }}")
+          if [ -z "$SERVICE_ID" ] || [ -z "$DEPLOY_KEY" ]; then
+            echo "ERROR: RENDER_SERVICE_ID or RENDER_DEPLOY_KEY is missing in GitHub Secrets!"
+            exit 1
+          fi
+          
+          # Ensure SERVICE_ID starts with srv-
+          if [[ ! $SERVICE_ID == srv-* ]]; then
+            SERVICE_ID="srv-$SERVICE_ID"
+          fi
+          
+          echo "Triggering deploy for $SERVICE_ID..."
+          URL="https://api.render.com/deploy/$SERVICE_ID?key=$DEPLOY_KEY"
+          
+          response=$(curl -s -w "\n%{http_code}" -X POST "$URL")
           http_code=$(echo "$response" | tail -n1)
           body=$(echo "$response" | head -n -1)
+          
           echo "HTTP Status: $http_code"
-          echo "Response Body: $body"
           if [ "$http_code" -ne 200 ]; then
+            echo "Response Body: $body"
             echo "Deployment trigger failed!"
             exit 1
           fi
+          echo "Successfully triggered Render deployment."
 
   deploy-pages:
     name: Deploy to GitHub Pages
