@@ -253,7 +253,7 @@ const PreferencesForm = ({ onGenerate, stats }) => {
     } catch (error) {
       console.error('Error generating routine:', error);
       alert(
-        'Failed to generate routine with AI. Please check your OpenRouter API key and network connection. Fallback routines are no longer available.'
+        error.message || 'Failed to generate routine with AI. Please check your OpenRouter API key and network connection. Fallback routines are no longer available.'
       );
     } finally {
       setIsGenerating(false);

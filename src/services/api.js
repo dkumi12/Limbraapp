@@ -22,7 +22,7 @@ const getSelectedModel = () => {
 };
 
 const getAIProvider = () => {
-  const provider = import.meta.env.VITE_AI_PROVIDER || 'stretchgpt';
+  const provider = import.meta.env.VITE_AI_PROVIDER || 'bedrock';
   // If provider looks like a Bedrock model ID (contains a dot), default to bedrock
   if (provider.includes('.') || provider.includes('anthropic') || provider.includes('mistral')) {
     return 'bedrock';
@@ -492,6 +492,9 @@ CRITICAL:
     });
 
     if (!response.ok) {
+      if (response.status === 402) {
+        throw new Error('API Key is out of credits. Please check your OpenRouter account or use a different API key.');
+      }
       throw new Error(`OpenRouter API error: ${response.status}`);
     }
 
@@ -614,30 +617,37 @@ Please provide a JSON response with exactly this structure:
     let responseText = '';
 
     if (aiProvider === 'bedrock') {
-      const modelId = getAwsModelId();
+      try {
+        const modelId = getAwsModelId();
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            provider: 'bedrock',
+            prompt: prompt,
+            modelId: modelId,
+          }),
+        });
 
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          provider: 'bedrock',
-          prompt: prompt,
-          modelId: modelId,
-        }),
-      });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(
+            `Serverless API error: ${response.status} - ${errorData.error || 'Unknown error'}`
+          );
+        }
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          `Serverless API error: ${response.status} - ${errorData.error || 'Unknown error'}`
-        );
+        const data = await response.json();
+        responseText = data.responseText;
+      } catch (bedrockError) {
+        console.warn('⚠️ Bedrock failed in search, falling back to OpenRouter:', bedrockError.message);
+        // Fall back to OpenRouter by continuing to the next block
       }
+    }
 
-      const data = await response.json();
-      responseText = data.responseText;
-    } else {
+    // If responseText is still empty (either not bedrock or bedrock failed), try OpenRouter
+    if (!responseText) {
       const apiKey = getOpenRouterAPIKey();
       const selectedModel = getSelectedModel();
 
@@ -669,6 +679,9 @@ Please provide a JSON response with exactly this structure:
       });
 
       if (!response.ok) {
+        if (response.status === 402) {
+          throw new Error('API Key is out of credits. Please check your OpenRouter account or use a different API key.');
+        }
         throw new Error(`API error: ${response.status}`);
       }
 

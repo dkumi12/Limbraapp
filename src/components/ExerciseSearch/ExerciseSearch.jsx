@@ -85,7 +85,7 @@ const ExerciseSearch = ({
     } catch (error) {
       console.error('Error generating routine from search:', error);
       setSearchError(
-        'Failed to generate routine. Please try again or check your API key.'
+        error.message || 'Failed to generate routine. Please try again or check your API key.'
       );
     } finally {
       setIsGenerating(false);
