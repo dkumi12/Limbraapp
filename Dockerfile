@@ -1,7 +1,7 @@
 # ============================================
 # Stage 1: Build Frontend
 # ============================================
-FROM node:18-alpine AS builder
+FROM node:18 AS builder
 
 WORKDIR /app
 
@@ -9,7 +9,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install ALL dependencies (including dev for building)
-RUN npm ci --ignore-scripts
+RUN npm install --include=dev --ignore-scripts
 
 # Copy source code
 COPY . .
@@ -36,13 +36,13 @@ RUN npm run build
 # ============================================
 # Stage 2: Production Server (Node.js)
 # ============================================
-FROM node:18-alpine AS production
+FROM node:18-slim AS production
 
 WORKDIR /app
 
 # Copy package files and install only production dependencies
 COPY package*.json ./
-RUN npm ci --only=production --ignore-scripts
+RUN npm install --omit=dev --ignore-scripts
 
 # Copy backend server files
 COPY server.js .
