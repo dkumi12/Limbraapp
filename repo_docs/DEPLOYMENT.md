@@ -1,6 +1,7 @@
 # 🚀 Deploying Limbraapp to Vercel
 
 ## Prerequisites
+
 - GitHub account
 - Vercel account (sign up at https://vercel.com)
 - HuggingFace Write Access Token
@@ -23,6 +24,7 @@ git push origin main
 ## Step 3: Configure Build Settings
 
 Vercel should auto-detect these settings:
+
 - **Framework Preset**: Vite
 - **Build Command**: `npm run build`
 - **Output Directory**: `dist`
@@ -35,11 +37,12 @@ In the Vercel project settings:
 1. Go to **Settings** → **Environment Variables**
 2. Add the following variable:
 
-| Key | Value | Environment |
-|-----|-------|-------------|
+| Key              | Value                  | Environment                      |
+| ---------------- | ---------------------- | -------------------------------- |
 | `HF_WRITE_TOKEN` | Your HuggingFace token | Production, Preview, Development |
 
 **To get your HuggingFace token:**
+
 - Go to https://huggingface.co/settings/tokens
 - Create a new token with **Write** access
 - Copy and paste it into Vercel
@@ -61,14 +64,17 @@ In the Vercel project settings:
 ## Troubleshooting
 
 ### Error: "HuggingFace token not configured on server"
+
 - Make sure you added `HF_WRITE_TOKEN` to Vercel environment variables
 - Redeploy after adding the variable
 
 ### Error: "Failed to reach StretchGPT V3"
+
 - Check that your HuggingFace model is deployed: https://huggingface.co/dkumi12/stretchgptv2
 - Verify your token has Write access
 
 ### Error: "Serverless function timeout"
+
 - HuggingFace inference might need warm-up time
 - Try generating again after 30 seconds
 
@@ -77,11 +83,13 @@ In the Vercel project settings:
 To test the serverless function locally:
 
 1. Install Vercel CLI:
+
 ```bash
 npm i -g vercel
 ```
 
 2. Run dev server:
+
 ```bash
 vercel dev
 ```
@@ -96,9 +104,8 @@ Browser → /api/generate (Vercel Function) → HuggingFace API
    └──────────── JSON Response ←──────────────────┘
 ```
 
-✅ **No CORS issues** - Same origin
-✅ **Secure** - API token stays on server
-✅ **Scalable** - Serverless auto-scales
+✅ **No CORS issues** - Same origin ✅ **Secure** - API token stays on server ✅ **Scalable** -
+Serverless auto-scales
 
 ## Next Steps
 

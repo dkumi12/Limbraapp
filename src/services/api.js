@@ -7,30 +7,32 @@
 
 const getOpenRouterAPIKey = () => {
   return import.meta.env.VITE_OPENROUTER_API_KEY || '';
-}
+};
 
 const getYouTubeAPIKey = () => {
   return import.meta.env.VITE_YOUTUBE_API_KEY || '';
-}
+};
 
 const getHuggingFaceToken = () => {
   return import.meta.env.VITE_HF_WRITE_TOKEN || '';
-}
+};
 
 const getSelectedModel = () => {
   return import.meta.env.VITE_SELECTED_MODEL || 'anthropic/claude-3-haiku';
-}
+};
 
 const getAIProvider = () => {
   return import.meta.env.VITE_AI_PROVIDER || 'stretchgpt';
-}
+};
 
-const getAwsModelId = () => import.meta.env.VITE_AWS_MODEL_ID || 'mistral.mistral-small-2402-v1:0';
+const getAwsModelId = () =>
+  import.meta.env.VITE_AWS_MODEL_ID || 'mistral.mistral-small-2402-v1:0';
 
 // API Endpoints
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const YOUTUBE_API_URL = 'https://www.googleapis.com/youtube/v3/search';
-const HF_API_URL = 'https://api-inference.huggingface.co/models/dkumi12/stretchgptv2';
+const HF_API_URL =
+  'https://api-inference.huggingface.co/models/dkumi12/stretchgptv2';
 
 // Equipment types
 export const EQUIPMENT_TYPES = {
@@ -48,7 +50,7 @@ export const EQUIPMENT_TYPES = {
   PULL_UP_BAR: 'pull_up_bar',
   WALL: 'wall',
   CHAIR: 'chair',
-  MAT: 'mat'
+  MAT: 'mat',
 };
 
 // ============================================
@@ -57,17 +59,19 @@ export const EQUIPMENT_TYPES = {
 
 export async function generateStretchGPTV3Routine(preferences) {
   const hfToken = getHuggingFaceToken();
-  
+
   if (!hfToken) {
-    throw new Error('HuggingFace token not configured. Please add your token in Settings.');
+    throw new Error(
+      'HuggingFace token not configured. Please add your token in Settings.'
+    );
   }
 
   const { goals, bodyParts, difficulty } = preferences;
-  
+
   // Build prompt matching V3 training format
   const goalText = goals.join(', ').replace(/_/g, ' ');
   const targetText = mapBodyPartsToV3Target(bodyParts);
-  
+
   const prompt = `<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nGenerate a ${difficulty} stretching routine for ${goalText}.\n\nTargeting ${targetText}. No equipment.<|eot_id|><|start_header_id|>assistant<|end_header_id|>`;
 
   console.log('🚀 StretchGPT V3 Prompt:', prompt);
@@ -77,7 +81,7 @@ export async function generateStretchGPTV3Routine(preferences) {
     const response = await fetch('/api/generate', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         prompt: prompt,
@@ -85,20 +89,22 @@ export async function generateStretchGPTV3Routine(preferences) {
           max_new_tokens: 1500,
           temperature: 0.7,
           do_sample: true,
-          return_full_text: false
-        }
-      })
+          return_full_text: false,
+        },
+      }),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
       console.error('Serverless API Error:', response.status, errorData);
-      throw new Error(`Serverless API error: ${response.status} - ${errorData.error || 'Unknown error'}`);
+      throw new Error(
+        `Serverless API error: ${response.status} - ${errorData.error || 'Unknown error'}`
+      );
     }
 
     const result = await response.json();
     console.log('✅ StretchGPT V3 Raw Response:', result);
-    
+
     // Extract generated text
     let rawText;
     if (Array.isArray(result)) {
@@ -120,21 +126,21 @@ export async function generateStretchGPTV3Routine(preferences) {
       console.error('No JSON found in response:', rawText);
       throw new Error('No JSON found in model response');
     }
-    
+
     const routineData = JSON.parse(jsonMatch[0]);
     console.log('✨ StretchGPT V3 Parsed Routine:', routineData);
-    
+
     // Add videoSearchQuery to each exercise
     if (routineData.phases) {
       routineData.phases.forEach(phase => {
         phase.exercises.forEach(exercise => {
-          exercise.videoSearchQuery = `${exercise.name} ${exercise.target || ''} stretch tutorial`.trim();
+          exercise.videoSearchQuery =
+            `${exercise.name} ${exercise.target || ''} stretch tutorial`.trim();
         });
       });
     }
 
     return routineData;
-    
   } catch (error) {
     console.error('❌ StretchGPT V3 Error:', error);
     throw error;
@@ -144,20 +150,22 @@ export async function generateStretchGPTV3Routine(preferences) {
 // Map Limbraapp body parts to V3 target areas
 function mapBodyPartsToV3Target(bodyParts) {
   const mapping = {
-    'neck': 'Neck/Shoulders',
-    'shoulders': 'Neck/Shoulders',
-    'upper_back': 'Posterior Chain',
-    'lower_back': 'Posterior Chain',
-    'chest': 'Anterior Chain',
-    'arms': 'Anterior Chain',
-    'hips': 'Lateral Chain',
-    'legs': 'Posterior Chain',
-    'calves': 'Posterior Chain',
-    'full_body': 'Posterior Chain'
+    neck: 'Neck/Shoulders',
+    shoulders: 'Neck/Shoulders',
+    upper_back: 'Posterior Chain',
+    lower_back: 'Posterior Chain',
+    chest: 'Anterior Chain',
+    arms: 'Anterior Chain',
+    hips: 'Lateral Chain',
+    legs: 'Posterior Chain',
+    calves: 'Posterior Chain',
+    full_body: 'Posterior Chain',
   };
-  
+
   // Get unique V3 targets
-  const targets = [...new Set(bodyParts.map(bp => mapping[bp] || 'Posterior Chain'))];
+  const targets = [
+    ...new Set(bodyParts.map(bp => mapping[bp] || 'Posterior Chain')),
+  ];
   return targets[0] || 'Posterior Chain'; // V3 expects single target
 }
 
@@ -167,7 +175,7 @@ function mapBodyPartsToV3Target(bodyParts) {
 
 export function flattenV3Routine(v3Routine) {
   const exercises = [];
-  
+
   if (v3Routine.phases) {
     v3Routine.phases.forEach(phase => {
       phase.exercises.forEach(ex => {
@@ -180,34 +188,35 @@ export function flattenV3Routine(v3Routine) {
           primary_muscle_groups: [ex.target],
           intensity: ex.intensity,
           phase: phase.phaseName,
-          videoSearchQuery: ex.videoSearchQuery || `${ex.name} stretch tutorial`,
+          videoSearchQuery:
+            ex.videoSearchQuery || `${ex.name} stretch tutorial`,
           reps: ex.reps || null,
-          duration_seconds: ex.duration || 45
+          duration_seconds: ex.duration || 45,
         });
       });
     });
   }
-  
-  const totalDuration = v3Routine.estimatedDuration 
-    ? v3Routine.estimatedDuration * 60 
+
+  const totalDuration = v3Routine.estimatedDuration
+    ? v3Routine.estimatedDuration * 60
     : exercises.reduce((sum, ex) => sum + (ex.duration || 45), 0);
-  
+
   return {
     routineName: v3Routine.routineName,
     exercises: exercises,
     totalDuration: totalDuration,
     difficulty: v3Routine.level,
     benefits: [
-      `Targets ${v3Routine.targetArea}`, 
-      'Improves flexibility', 
+      `Targets ${v3Routine.targetArea}`,
+      'Improves flexibility',
       'Reduces muscle tension',
-      'Enhances mobility'
+      'Enhances mobility',
     ],
     warmupTips: [v3Routine.rationale],
     cooldownAdvice: 'Take deep breaths and slowly return to normal activity.',
     source: 'stretchgpt_v3',
     // Keep original V3 structure for future phase-aware UI
-    _v3Data: v3Routine
+    _v3Data: v3Routine,
   };
 }
 
@@ -264,18 +273,20 @@ Return ONLY valid JSON.
     const response = await fetch('/api/generate', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         provider: 'bedrock',
         prompt: prompt,
-        modelId: modelId
-      })
+        modelId: modelId,
+      }),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(`Serverless API error: ${response.status} - ${errorData.error || 'Unknown error'}`);
+      throw new Error(
+        `Serverless API error: ${response.status} - ${errorData.error || 'Unknown error'}`
+      );
     }
 
     const data = await response.json();
@@ -287,14 +298,15 @@ Return ONLY valid JSON.
     }
 
     let parsedData = JSON.parse(jsonMatch[0]);
-    
+
     // Normalize response to always have valid structure and number durations
     if (Array.isArray(parsedData)) {
       parsedData = {
-        routineName: preferences.goals[0]?.replace(/_/g, ' ') || 'Custom Routine',
+        routineName:
+          preferences.goals[0]?.replace(/_/g, ' ') || 'Custom Routine',
         exercises: parsedData,
-        warmupTips: ["Move slowly", "Breathe deeply"],
-        cooldownAdvice: "Rest for a few minutes after finishing."
+        warmupTips: ['Move slowly', 'Breathe deeply'],
+        cooldownAdvice: 'Rest for a few minutes after finishing.',
       };
     }
 
@@ -304,8 +316,12 @@ Return ONLY valid JSON.
         ...ex,
         name: ex.name || ex.exercise_name || 'Stretching Exercise',
         duration: parseInt(ex.duration) || 45,
-        description: ex.description || ex.instructions || 'Follow the video instructions carefully.',
-        videoSearchQuery: ex.videoSearchQuery || `${ex.name || 'stretching'} stretch tutorial`
+        description:
+          ex.description ||
+          ex.instructions ||
+          'Follow the video instructions carefully.',
+        videoSearchQuery:
+          ex.videoSearchQuery || `${ex.name || 'stretching'} stretch tutorial`,
       }));
     }
 
@@ -322,7 +338,7 @@ Return ONLY valid JSON.
 
 export async function generateAIRoutine(preferences) {
   console.log('🎯 generateAIRoutine called with:', preferences);
-  
+
   const aiProvider = getAIProvider();
   console.log('🤖 AI Provider:', aiProvider);
 
@@ -338,12 +354,16 @@ export async function generateAIRoutine(preferences) {
       // Fall through to OpenRouter
     }
   }
-  
+
   // Try StretchGPT V3 first if selected
   if (aiProvider === 'stretchgpt') {
     const hfToken = getHuggingFaceToken();
-    console.log('🔑 HuggingFace token exists:', !!hfToken, hfToken ? `(${hfToken.substring(0, 10)}...)` : '(none)');
-    
+    console.log(
+      '🔑 HuggingFace token exists:',
+      !!hfToken,
+      hfToken ? `(${hfToken.substring(0, 10)}...)` : '(none)'
+    );
+
     if (hfToken) {
       try {
         console.log('🚀 Using StretchGPT V3...');
@@ -360,7 +380,7 @@ export async function generateAIRoutine(preferences) {
       console.warn('⚠️ No HuggingFace token, falling back to OpenRouter');
     }
   }
-  
+
   console.log('🔄 Attempting OpenRouter...');
   return generateOpenRouterRoutine(preferences);
 }
@@ -370,12 +390,20 @@ export async function generateAIRoutine(preferences) {
 // ============================================
 
 async function generateOpenRouterRoutine(preferences) {
-  const { duration, goals, bodyParts, equipment, difficulty, energyLevel, problems } = preferences;
-  
+  const {
+    duration,
+    goals,
+    bodyParts,
+    equipment,
+    difficulty,
+    energyLevel,
+    problems,
+  } = preferences;
+
   // Use V3-style prompt structure for better results
   const goalText = goals.join(', ').replace(/_/g, ' ');
   const bodyPartsText = bodyParts.join(', ').replace(/_/g, ' ');
-  
+
   const prompt = `
 Generate a personalized stretching routine with 4-phase structure (Preparation, Activation, Main, Integration).
 
@@ -418,29 +446,32 @@ CRITICAL:
     const selectedModel = getSelectedModel();
 
     if (!apiKey) {
-      throw new Error('OpenRouter API key not configured. Please add your API key in Settings.');
+      throw new Error(
+        'OpenRouter API key not configured. Please add your API key in Settings.'
+      );
     }
-    
+
     const response = await fetch(OPENROUTER_API_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': window.location.origin,
-        'X-Title': 'Limbra App'
+        'X-Title': 'Limbra App',
       },
       body: JSON.stringify({
         model: selectedModel,
         messages: [
           {
             role: 'system',
-            content: 'You are a professional fitness and stretching expert. Generate safe, effective routines following the exact JSON format provided. Return only valid JSON.'
+            content:
+              'You are a professional fitness and stretching expert. Generate safe, effective routines following the exact JSON format provided. Return only valid JSON.',
           },
-          { role: 'user', content: prompt }
+          { role: 'user', content: prompt },
         ],
         temperature: 0.7,
-        max_tokens: 2000
-      })
+        max_tokens: 2000,
+      }),
     });
 
     if (!response.ok) {
@@ -449,7 +480,7 @@ CRITICAL:
 
     const data = await response.json();
     const routineData = JSON.parse(data.choices[0].message.content);
-    
+
     return routineData;
   } catch (error) {
     console.error('OpenRouter error:', error);
@@ -467,21 +498,28 @@ export async function searchYouTubeVideos(query, maxResults = 5) {
     console.warn('YouTube API key not configured');
     return [];
   }
-  
+
   // Enhance query for better relevance and remove special characters
   let enhancedQuery = query.replace(/[()\[\]{}]/g, '').trim();
-  
+
   const lowerQuery = enhancedQuery.toLowerCase();
-  if (!lowerQuery.includes('stretch') && !lowerQuery.includes('exercise') && !lowerQuery.includes('tutorial')) {
+  if (
+    !lowerQuery.includes('stretch') &&
+    !lowerQuery.includes('exercise') &&
+    !lowerQuery.includes('tutorial')
+  ) {
     enhancedQuery = `${enhancedQuery} stretch tutorial`;
-  } else if (!lowerQuery.includes('tutorial') && !lowerQuery.includes('demonstration')) {
+  } else if (
+    !lowerQuery.includes('tutorial') &&
+    !lowerQuery.includes('demonstration')
+  ) {
     // If it has "stretch" but not "tutorial", add tutorial to get better instructional videos
     enhancedQuery = `${enhancedQuery} tutorial`;
   }
-  
+
   console.log('YouTube Search Query:', enhancedQuery);
 
-  const fetchWithParams = async (durationConstraint) => {
+  const fetchWithParams = async durationConstraint => {
     const params = new URLSearchParams({
       part: 'snippet',
       q: enhancedQuery,
@@ -491,7 +529,7 @@ export async function searchYouTubeVideos(query, maxResults = 5) {
       ...(durationConstraint ? { videoDuration: durationConstraint } : {}),
       relevanceLanguage: 'en',
       safeSearch: 'strict',
-      key: apiKey
+      key: apiKey,
     });
 
     const response = await fetch(`${YOUTUBE_API_URL}?${params}`);
@@ -502,10 +540,12 @@ export async function searchYouTubeVideos(query, maxResults = 5) {
   try {
     // Try short videos first
     let data = await fetchWithParams('short');
-    
+
     // If no short videos are found, fall back to any duration
     if (!data.items || data.items.length === 0) {
-      console.log(`No short videos found for "${enhancedQuery}", retrying without duration constraint...`);
+      console.log(
+        `No short videos found for "${enhancedQuery}", retrying without duration constraint...`
+      );
       data = await fetchWithParams(null);
     }
 
@@ -519,7 +559,7 @@ export async function searchYouTubeVideos(query, maxResults = 5) {
 // Generate a routine based on a search query
 export async function generateRoutineFromSearch(searchQuery, preferences) {
   const { duration, difficulty = 'intermediate' } = preferences;
-  
+
   const prompt = `
 I need a stretching routine focused on "${searchQuery}". Please create a personalized routine.
 
@@ -554,7 +594,7 @@ Please provide a JSON response with exactly this structure:
 
   try {
     const aiProvider = getAIProvider();
-    let responseText = "";
+    let responseText = '';
 
     if (aiProvider === 'bedrock') {
       const modelId = getAwsModelId();
@@ -562,18 +602,20 @@ Please provide a JSON response with exactly this structure:
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           provider: 'bedrock',
           prompt: prompt,
-          modelId: modelId
-        })
+          modelId: modelId,
+        }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`Serverless API error: ${response.status} - ${errorData.error || 'Unknown error'}`);
+        throw new Error(
+          `Serverless API error: ${response.status} - ${errorData.error || 'Unknown error'}`
+        );
       }
 
       const data = await response.json();
@@ -585,27 +627,28 @@ Please provide a JSON response with exactly this structure:
       if (!apiKey) {
         throw new Error('OpenRouter API key not configured');
       }
-      
+
       const response = await fetch(OPENROUTER_API_URL, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
           'HTTP-Referer': window.location.origin,
-          'X-Title': 'Limbra App'
+          'X-Title': 'Limbra App',
         },
         body: JSON.stringify({
           model: selectedModel,
           messages: [
             {
               role: 'system',
-              content: 'You are a professional fitness and stretching expert. Generate safe, effective routines following the exact format provided.'
+              content:
+                'You are a professional fitness and stretching expert. Generate safe, effective routines following the exact format provided.',
             },
-            { role: 'user', content: prompt }
+            { role: 'user', content: prompt },
           ],
           temperature: 0.7,
-          max_tokens: 2000
-        })
+          max_tokens: 2000,
+        }),
       });
 
       if (!response.ok) {
@@ -636,16 +679,18 @@ export async function loadExerciseVideos(exercises) {
   const youtubeApiKey = getYouTubeAPIKey();
 
   // Run all YouTube search requests in parallel
-  const fetchVideoPromises = exercises.map(async (exercise) => {
+  const fetchVideoPromises = exercises.map(async exercise => {
     // Create a copy so we don't mutate original during parallel processing
     const ex = { ...exercise };
-    
+
     try {
       if (youtubeApiKey && (ex.videoSearchQuery || ex.name)) {
         try {
-          const searchQuery = ex.videoSearchQuery || `${ex.name || 'stretching'} stretch tutorial`;
+          const searchQuery =
+            ex.videoSearchQuery ||
+            `${ex.name || 'stretching'} stretch tutorial`;
           const videos = await searchYouTubeVideos(searchQuery, 3);
-          
+
           if (videos && videos.length > 0) {
             ex.videoId = videos[0].id.videoId;
             ex.videoTitle = videos[0].snippet.title;
@@ -654,7 +699,10 @@ export async function loadExerciseVideos(exercises) {
             ex.videoId = null;
           }
         } catch (videoError) {
-          console.warn(`YouTube API failed for ${ex.name}, using placeholder:`, videoError);
+          console.warn(
+            `YouTube API failed for ${ex.name}, using placeholder:`,
+            videoError
+          );
           ex.videoId = null;
         }
       } else {
@@ -664,7 +712,7 @@ export async function loadExerciseVideos(exercises) {
       console.error(`Error processing exercise ${ex.name}:`, error);
       ex.videoId = null;
     }
-    
+
     return ex;
   });
 
@@ -679,76 +727,76 @@ export const EQUIPMENT_INFO = {
   [EQUIPMENT_TYPES.NONE]: {
     name: 'No Equipment',
     description: 'Bodyweight only',
-    icon: '🤸'
+    icon: '🤸',
   },
   [EQUIPMENT_TYPES.LACROSSE_BALL]: {
     name: 'Lacrosse Ball',
     description: 'For deep tissue massage',
-    icon: '/tennis-ball.svg'
+    icon: '/tennis-ball.svg',
   },
   [EQUIPMENT_TYPES.TENNIS_BALL]: {
     name: 'Tennis Ball',
     description: 'For trigger point release',
-    icon: '🎾'
+    icon: '🎾',
   },
   [EQUIPMENT_TYPES.FOAM_ROLLER]: {
     name: 'Foam Roller',
     description: 'For myofascial release',
-    icon: '🟩'
+    icon: '🟩',
   },
   [EQUIPMENT_TYPES.RESISTANCE_BAND]: {
     name: 'Resistance Band',
     description: 'For assisted stretching',
-    icon: '🎗️'
+    icon: '🎗️',
   },
   [EQUIPMENT_TYPES.YOGA_BLOCK]: {
     name: 'Yoga Block',
     description: 'For support and alignment',
-    icon: '🧱'
+    icon: '🧱',
   },
   [EQUIPMENT_TYPES.YOGA_STRAP]: {
     name: 'Yoga Strap',
     description: 'For deeper stretches',
-    icon: '🪢'
+    icon: '🪢',
   },
   [EQUIPMENT_TYPES.STICK]: {
     name: 'Mobility Stick',
     description: 'For posture and mobility',
-    icon: '/mobility-stick.svg'
+    icon: '/mobility-stick.svg',
   },
   [EQUIPMENT_TYPES.KETTLEBELL]: {
     name: 'Kettlebell',
     description: 'For weighted stretches',
-    icon: '🔔'
+    icon: '🔔',
   },
   [EQUIPMENT_TYPES.DUMBBELL]: {
     name: 'Dumbbell',
     description: 'For weighted mobility',
-    icon: '💪'
+    icon: '💪',
   },
   [EQUIPMENT_TYPES.STABILITY_BALL]: {
     name: 'Stability Ball',
     description: 'For balance and core',
-    icon: '⚪'
+    icon: '⚪',
   },
   [EQUIPMENT_TYPES.PULL_UP_BAR]: {
     name: 'Pull-up Bar',
     description: 'For hanging stretches',
-    icon: '🚪'
+    icon: '🚪',
   },
   [EQUIPMENT_TYPES.WALL]: {
     name: 'Wall',
     description: 'For support',
-    icon: '🏢'
+    icon: '🏢',
   },
   [EQUIPMENT_TYPES.CHAIR]: {
     name: 'Chair',
     description: 'For seated stretches',
-    icon: '🪑'
+    icon: '🪑',
   },
   [EQUIPMENT_TYPES.MAT]: {
     name: 'Exercise Mat',
     description: 'For floor work',
-    icon: '🏋️'
-  }
+    icon: '🏋️',
+  },
 };

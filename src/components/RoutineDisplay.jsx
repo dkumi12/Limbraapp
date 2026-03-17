@@ -1,33 +1,39 @@
-import React, { useState, useEffect } from 'react'
-import { useTimer, useAudio, useWakeLock, useAuth } from '../hooks'
-import { getYouTubeEmbedUrl } from '../routineGenerator'
+import React, { useState, useEffect } from 'react';
+import { useTimer, useAudio, useWakeLock, useAuth } from '../hooks';
+import { getYouTubeEmbedUrl } from '../routineGenerator';
 import EvaIcon from './EvaIcon';
 import { supabase } from '../services/supabase';
 
-const RoutineDisplay = ({ routine, preferences, onComplete, onBack, isFallback }) => {
+const RoutineDisplay = ({
+  routine,
+  preferences,
+  onComplete,
+  onBack,
+  isFallback,
+}) => {
   const { user } = useAuth();
   // Debug logging to understand what we're receiving
   useEffect(() => {
     console.log('RoutineDisplay mounted with:', {
       routine,
       hasExercises: routine?.exercises?.length,
-      routineKeys: routine ? Object.keys(routine) : 'no routine'
+      routineKeys: routine ? Object.keys(routine) : 'no routine',
     });
   }, [routine]);
 
-  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0)
-  const [isTimerRunning, setIsTimerRunning] = useState(false)
-  const [sessionStartTime, setSessionStartTime] = useState(null)
-  const [showInstructions, setShowInstructions] = useState(true)
-  const [showVideo, setShowVideo] = useState(true)
-  const [completedExercises, setCompletedExercises] = useState([])
-  const [isRoutineSaved, setIsRoutineSaved] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
+  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [sessionStartTime, setSessionStartTime] = useState(null);
+  const [showInstructions, setShowInstructions] = useState(true);
+  const [showVideo, setShowVideo] = useState(true);
+  const [completedExercises, setCompletedExercises] = useState([]);
+  const [isRoutineSaved, setIsRoutineSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleSaveRoutine = async () => {
     if (!user) return;
     setIsSaving(true);
-    
+
     const newRoutine = {
       user_id: user.id,
       name: routine.name,
@@ -39,16 +45,14 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack, isFallback }
         tips: routine.tips,
         cooldownAdvice: routine.cooldownAdvice,
         preferences: preferences, // Save preferences for context
-      }
+      },
     };
 
     try {
-      const { error } = await supabase
-        .from('routines')
-        .insert([newRoutine]);
+      const { error } = await supabase.from('routines').insert([newRoutine]);
 
       if (error) throw error;
-      
+
       setIsRoutineSaved(true);
       alert('Routine saved to your library!');
     } catch (error) {
@@ -58,13 +62,15 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack, isFallback }
       setIsSaving(false);
     }
   };
-  
-  const currentExercise = routine.exercises[currentExerciseIndex]
-  const isLastExercise = currentExerciseIndex === routine.exercises.length - 1
-  
-  const { time, isRunning, formatTime, start, pause, reset } = useTimer(currentExercise?.duration || 0)
-  const { playBeep, playSuccess, playAlert } = useAudio()
-  const { requestWakeLock, releaseWakeLock } = useWakeLock()
+
+  const currentExercise = routine.exercises[currentExerciseIndex];
+  const isLastExercise = currentExerciseIndex === routine.exercises.length - 1;
+
+  const { time, isRunning, formatTime, start, pause, reset } = useTimer(
+    currentExercise?.duration || 0
+  );
+  const { playBeep, playSuccess, playAlert } = useAudio();
+  const { requestWakeLock, releaseWakeLock } = useWakeLock();
 
   const handleNextExercise = () => {
     if (currentExerciseIndex < routine.exercises.length - 1) {
@@ -79,20 +85,20 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack, isFallback }
       onComplete({
         totalTime,
         completedExercises: routine.exercises.length,
-        skippedExercises: 0
+        skippedExercises: 0,
       });
     }
-  }
+  };
 
   useEffect(() => {
     if (!sessionStartTime && isTimerRunning) {
-      setSessionStartTime(Date.now())
-      requestWakeLock()
+      setSessionStartTime(Date.now());
+      requestWakeLock();
     }
-    
+
     return () => {
-      releaseWakeLock()
-    }
+      releaseWakeLock();
+    };
   }, [isTimerRunning, sessionStartTime, requestWakeLock, releaseWakeLock]);
 
   useEffect(() => {
@@ -116,26 +122,32 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack, isFallback }
       setIsTimerRunning(true);
     }
     start();
-  }
+  };
 
   const handlePauseTimer = () => {
     pause();
-  }
+  };
 
   const handlePreviousExercise = () => {
     if (currentExerciseIndex > 0) {
       setCurrentExerciseIndex(currentExerciseIndex - 1);
-      setCompletedExercises(completedExercises.filter(i => i !== currentExerciseIndex - 1));
+      setCompletedExercises(
+        completedExercises.filter(i => i !== currentExerciseIndex - 1)
+      );
       pause();
     }
-  }
+  };
 
   const handleSkipExercise = () => {
     handleNextExercise();
-  }
+  };
 
-  const progressPercentage = ((currentExerciseIndex + 1) / routine.exercises.length) * 100;
-  const timePercentage = time > 0 ? ((currentExercise.duration - time) / currentExercise.duration) * 100 : 100;
+  const progressPercentage =
+    ((currentExerciseIndex + 1) / routine.exercises.length) * 100;
+  const timePercentage =
+    time > 0
+      ? ((currentExercise.duration - time) / currentExercise.duration) * 100
+      : 100;
 
   return (
     <div className="routine-container">
@@ -143,17 +155,35 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack, isFallback }
       <div className="routine-header">
         <h1 className="header-text">{routine.name}</h1>
         {isFallback && (
-          <p style={{ color: '#ff9800', textAlign: 'center', marginBottom: '1rem' }}>
+          <p
+            style={{
+              color: '#ff9800',
+              textAlign: 'center',
+              marginBottom: '1rem',
+            }}
+          >
             AI generation unavailable. Displaying a general routine.
           </p>
         )}
         <div className="routine-meta">
           <span>
-            <EvaIcon name="clock-outline" width={20} height={20} fill="#64748b" style={{ marginRight: '0.25rem' }} />
+            <EvaIcon
+              name="clock-outline"
+              width={20}
+              height={20}
+              fill="#64748b"
+              style={{ marginRight: '0.25rem' }}
+            />
             {Math.round(routine.totalDuration / 60)} minutes
           </span>
           <span>
-            <EvaIcon name="activity-outline" width={20} height={20} fill="#64748b" style={{ marginRight: '0.25rem' }} />
+            <EvaIcon
+              name="activity-outline"
+              width={20}
+              height={20}
+              fill="#64748b"
+              style={{ marginRight: '0.25rem' }}
+            />
             {routine.exercises.length} exercises
           </span>
         </div>
@@ -167,15 +197,24 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack, isFallback }
         <h2 className="current-exercise-name">{currentExercise.name}</h2>
         {showInstructions && (
           <>
-            <p className="current-exercise-description">{currentExercise.description}</p>
+            <p className="current-exercise-description">
+              {currentExercise.description}
+            </p>
             {currentExercise.tips && (
-              <p style={{ fontSize: '0.875rem', opacity: 0.9, marginTop: '0.5rem', fontStyle: 'italic' }}>
+              <p
+                style={{
+                  fontSize: '0.875rem',
+                  opacity: 0.9,
+                  marginTop: '0.5rem',
+                  fontStyle: 'italic',
+                }}
+              >
                 💡 {currentExercise.tips}
               </p>
             )}
           </>
         )}
-        
+
         {/* Equipment Tags */}
         {currentExercise.equipment && currentExercise.equipment.length > 0 && (
           <div className="equipment-tags">
@@ -186,7 +225,7 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack, isFallback }
             ))}
           </div>
         )}
-        
+
         {/* Benefits */}
         {currentExercise.benefits && currentExercise.benefits.length > 0 && (
           <div className="exercise-benefits">
@@ -218,8 +257,8 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack, isFallback }
               <p>No video available for this exercise</p>
             </div>
           )}
-          <button 
-            className="btn btn-secondary" 
+          <button
+            className="btn btn-secondary"
             onClick={() => setShowVideo(!showVideo)}
             style={{ width: '100%', marginTop: '0.5rem' }}
           >
@@ -230,14 +269,16 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack, isFallback }
 
       {/* Timer */}
       <div className="timer-container">
-        <div className={`timer-display ${time <= 5 ? 'danger' : time <= 10 ? 'warning' : ''}`}>
+        <div
+          className={`timer-display ${time <= 5 ? 'danger' : time <= 10 ? 'warning' : ''}`}
+        >
           {formatTime(time)}
         </div>
-        
+
         {/* Timer Progress Bar */}
         <div className="progress-bar">
-          <div 
-            className="progress-fill" 
+          <div
+            className="progress-fill"
             style={{ width: `${timePercentage}%` }}
           />
         </div>
@@ -246,22 +287,37 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack, isFallback }
         <div className="timer-controls">
           {!isRunning ? (
             <button className="btn" onClick={handleStartTimer}>
-              <EvaIcon name="play-circle-outline" width={24} height={24} fill="#22d3ee" style={{ marginRight: '0.5rem' }} />
+              <EvaIcon
+                name="play-circle-outline"
+                width={24}
+                height={24}
+                fill="#22d3ee"
+                style={{ marginRight: '0.5rem' }}
+              />
               Start
             </button>
           ) : (
             <button className="btn btn-secondary" onClick={handlePauseTimer}>
-              <EvaIcon name="pause-circle-outline" width={24} height={24} fill="#64748b" style={{ marginRight: '0.5rem' }} />
+              <EvaIcon
+                name="pause-circle-outline"
+                width={24}
+                height={24}
+                fill="#64748b"
+                style={{ marginRight: '0.5rem' }}
+              />
               Pause
             </button>
           )}
-          
-          <button 
-            className="btn btn-secondary" 
-            onClick={handleSkipExercise}
-          >
+
+          <button className="btn btn-secondary" onClick={handleSkipExercise}>
             Skip
-            <EvaIcon name="skip-forward-outline" width={24} height={24} fill="#64748b" style={{ marginLeft: '0.5rem' }} />
+            <EvaIcon
+              name="skip-forward-outline"
+              width={24}
+              height={24}
+              fill="#64748b"
+              style={{ marginLeft: '0.5rem' }}
+            />
           </button>
         </div>
       </div>
@@ -273,8 +329,11 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack, isFallback }
           <div
             key={index}
             className={`exercise-summary ${
-              index === currentExerciseIndex ? 'current' : 
-              completedExercises.includes(index) ? 'completed' : ''
+              index === currentExerciseIndex
+                ? 'current'
+                : completedExercises.includes(index)
+                  ? 'completed'
+                  : ''
             }`}
             onClick={() => {
               if (index !== currentExerciseIndex) {
@@ -284,23 +343,31 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack, isFallback }
             }}
           >
             <span className="exercise-summary-name">{exercise.name}</span>
-            <span className="exercise-summary-duration">{exercise.duration}s</span>
+            <span className="exercise-summary-duration">
+              {exercise.duration}s
+            </span>
           </div>
         ))}
       </div>
 
       {/* Tips Section */}
       {routine.tips && routine.tips.length > 0 && (
-        <div style={{ 
-          background: 'rgba(34, 197, 94, 0.1)', 
-          padding: '1rem', 
-          borderRadius: '8px',
-          marginTop: '1rem'
-        }}>
-          <h4 style={{ marginBottom: '0.5rem', color: 'var(--primary-green)' }}>Tips:</h4>
+        <div
+          style={{
+            background: 'rgba(34, 197, 94, 0.1)',
+            padding: '1rem',
+            borderRadius: '8px',
+            marginTop: '1rem',
+          }}
+        >
+          <h4 style={{ marginBottom: '0.5rem', color: 'var(--primary-green)' }}>
+            Tips:
+          </h4>
           <ul style={{ listStyle: 'none', padding: 0 }}>
             {routine.tips.map((tip, index) => (
-              <li key={index} style={{ marginBottom: '0.25rem' }}>• {tip}</li>
+              <li key={index} style={{ marginBottom: '0.25rem' }}>
+                • {tip}
+              </li>
             ))}
           </ul>
         </div>
@@ -308,28 +375,46 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack, isFallback }
 
       {/* Navigation */}
       <div className="navigation-buttons">
-        <button 
-          className="btn btn-secondary" 
+        <button
+          className="btn btn-secondary"
           onClick={handlePreviousExercise}
           disabled={currentExerciseIndex === 0}
         >
-          <EvaIcon name="arrow-back-outline" width={20} height={20} fill="#64748b" style={{ marginRight: '0.5rem' }} />
+          <EvaIcon
+            name="arrow-back-outline"
+            width={20}
+            height={20}
+            fill="#64748b"
+            style={{ marginRight: '0.5rem' }}
+          />
           Previous
         </button>
-        
-        <button 
-          className="btn" 
+
+        <button
+          className="btn"
           onClick={isLastExercise ? handleNextExercise : handleNextExercise}
         >
           {isLastExercise ? (
             <>
               Complete
-              <EvaIcon name="checkmark-circle-2-outline" width={20} height={20} fill="#22d3ee" style={{ marginLeft: '0.5rem' }} />
+              <EvaIcon
+                name="checkmark-circle-2-outline"
+                width={20}
+                height={20}
+                fill="#22d3ee"
+                style={{ marginLeft: '0.5rem' }}
+              />
             </>
           ) : (
             <>
               Next
-              <EvaIcon name="arrow-forward-outline" width={20} height={20} fill="#22d3ee" style={{ marginLeft: '0.5rem' }} />
+              <EvaIcon
+                name="arrow-forward-outline"
+                width={20}
+                height={20}
+                fill="#22d3ee"
+                style={{ marginLeft: '0.5rem' }}
+              />
             </>
           )}
         </button>
@@ -337,20 +422,26 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack, isFallback }
 
       {/* Overall Progress */}
       <div style={{ marginTop: '2rem' }}>
-        <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '0.5rem' }}>
+        <p
+          style={{
+            fontSize: '0.875rem',
+            color: '#64748b',
+            marginBottom: '0.5rem',
+          }}
+        >
           Overall Progress
         </p>
         <div className="progress-bar">
-          <div 
-            className="progress-fill" 
+          <div
+            className="progress-fill"
             style={{ width: `${progressPercentage}%` }}
           />
         </div>
       </div>
 
       {/* Save Routine Button */}
-      <button 
-        className="btn" 
+      <button
+        className="btn"
         onClick={handleSaveRoutine}
         disabled={isRoutineSaved}
         style={{ marginTop: '1rem' }}
@@ -359,16 +450,22 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack, isFallback }
       </button>
 
       {/* Back Button */}
-      <button 
-        className="btn btn-secondary" 
+      <button
+        className="btn btn-secondary"
         onClick={onBack}
         style={{ marginTop: '1rem' }}
       >
-        <EvaIcon name="arrow-back-outline" width={20} height={20} fill="#64748b" style={{ marginRight: '0.5rem' }} />
+        <EvaIcon
+          name="arrow-back-outline"
+          width={20}
+          height={20}
+          fill="#64748b"
+          style={{ marginRight: '0.5rem' }}
+        />
         Back to Preferences
       </button>
     </div>
-  )
-}
+  );
+};
 
-export default RoutineDisplay
+export default RoutineDisplay;

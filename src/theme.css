@@ -15,18 +15,20 @@
   --border-light: #e2e8f0;
   --bg-tag: #e2e8f0;
   --bg-light: #f1f5f9;
-  
+
   /* Shadows */
   --shadow-sm: 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
   /* Border Radius */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 20px;
   --radius-full: 9999px;
-  
+
   /* Spacing */
   --spacing-xs: 0.5rem;
   --spacing-sm: 0.75rem;
@@ -44,7 +46,12 @@
 
 /* Body and App Container */
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
   background-color: var(--bg-primary);
   color: var(--body-text);
   line-height: 1.5;
@@ -258,7 +265,9 @@ h2 {
   font-weight: 600;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.2s ease, background-color 0.3s ease;
+  transition:
+    all 0.2s ease,
+    background-color 0.3s ease;
   width: 100%;
 }
 
@@ -295,7 +304,7 @@ h2 {
   max-width: 448px;
   margin: 0 auto;
   background: var(--bg-white);
-  box-shadow: 0 -2px 12px rgba(20,24,31,0.08);
+  box-shadow: 0 -2px 12px rgba(20, 24, 31, 0.08);
   display: flex;
   justify-content: space-around;
   align-items: center;
@@ -383,8 +392,11 @@ section {
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
-  box-shadow: 0 2px 8px rgba(20,24,31,0.08);
+  transition:
+    background 0.2s,
+    box-shadow 0.2s,
+    transform 0.2s;
+  box-shadow: 0 2px 8px rgba(20, 24, 31, 0.08);
   display: flex;
   flex-direction: column;
   min-height: 110px;
@@ -511,11 +523,11 @@ section {
   .quick-start-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .stats-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .main-container,
   .container {
     border-radius: 0;
@@ -575,7 +587,8 @@ section {
   font-size: 1rem;
 }
 
-.spinner, .loader {
+.spinner,
+.loader {
   width: 3rem;
   height: 3rem;
   border: 4px solid var(--border-light);
@@ -599,7 +612,7 @@ section {
 }
 
 .loader::before {
-  content: "";
+  content: '';
   width: 3rem;
   height: 3rem;
   border: 4px solid var(--border-light);
@@ -610,8 +623,12 @@ section {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Session Complete Styles */
@@ -633,8 +650,13 @@ section {
 }
 
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
 }
 
 /* Exercise List Styles */
@@ -683,7 +705,7 @@ section {
 }
 
 .exercise-summary.completed::after {
-  content: "✓";
+  content: '✓';
   font-weight: 700;
   color: var(--primary-green);
   margin-left: 0.5rem;
@@ -700,9 +722,16 @@ section {
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
 }
 
 /* Button Icons */
@@ -745,7 +774,11 @@ section {
 
 /* Current Exercise Display Enhanced */
 .current-exercise-display {
-  background: linear-gradient(135deg, var(--primary-green), var(--primary-green-dark));
+  background: linear-gradient(
+    135deg,
+    var(--primary-green),
+    var(--primary-green-dark)
+  );
   color: white;
   padding: 1.5rem;
   border-radius: var(--radius-md);
@@ -806,32 +839,32 @@ section {
   .app {
     padding-top: 0;
   }
-  
+
   .navigation-buttons {
     flex-direction: column;
   }
-  
+
   .navigation-buttons .btn {
     width: 100%;
   }
-  
+
   .timer-controls {
     flex-direction: column;
     gap: 0.75rem;
   }
-  
+
   .timer-controls .btn {
     width: 100%;
   }
-  
+
   .goal-grid {
     gap: 0.75rem;
   }
-  
+
   .nav-bar {
     padding: 0.5rem 0 0.25rem 0;
   }
-}/* Material Icons Fix */
+} /* Material Icons Fix */
 .material-icons {
   font-family: 'Material Icons';
   font-weight: normal;
@@ -853,15 +886,15 @@ section {
   .header-text {
     font-size: 1.5rem;
   }
-  
+
   .subheader-text {
     font-size: 0.875rem;
   }
-  
+
   .quick-start-tag {
     padding: 0.625rem;
   }
-  
+
   .quick-start-tag p {
     font-size: 0.813rem;
   }
@@ -892,7 +925,10 @@ section {
 
 /* Smooth transitions */
 * {
-  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
 /* Print styles */
@@ -903,7 +939,7 @@ section {
   .navigation-buttons {
     display: none;
   }
-  
+
   .main-container {
     box-shadow: none;
     padding-bottom: 0;
@@ -923,19 +959,19 @@ section {
     --bg-tag: #334155;
     --bg-light: #334155;
   }
-  
+
   .main-container {
     background-color: var(--bg-white);
   }
-  
+
   .goal-card {
     background-color: #334155;
   }
-  
+
   .goal-card:hover {
     background-color: #475569;
   }
-  
+
   .stat-card,
   .exercise-summary {
     background-color: #334155;
@@ -1031,7 +1067,7 @@ html {
 }
 
 /* Exercise Search Styling */
-.exercise-search input[type="range"] {
+.exercise-search input[type='range'] {
   -webkit-appearance: none;
   height: 6px;
   background: #1a2031;
@@ -1039,7 +1075,7 @@ html {
   outline: none;
 }
 
-.exercise-search input[type="range"]::-webkit-slider-thumb {
+.exercise-search input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 16px;
   height: 16px;
@@ -1048,7 +1084,7 @@ html {
   cursor: pointer;
 }
 
-.exercise-search input[type="range"]::-moz-range-thumb {
+.exercise-search input[type='range']::-moz-range-thumb {
   width: 16px;
   height: 16px;
   background: var(--primary-green);
@@ -1230,8 +1266,12 @@ html {
 
 /* Spinner Animation */
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* API Configuration Notice */
@@ -1258,19 +1298,19 @@ html {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 0.5rem;
   }
-  
+
   .equipment-card {
     padding: 0.75rem;
   }
-  
+
   .equipment-icon {
     font-size: 1.5rem;
   }
-  
+
   .equipment-name {
     font-size: 0.75rem;
   }
-  
+
   .equipment-desc {
     display: none;
   }
@@ -1327,7 +1367,7 @@ html {
   border-radius: 18px;
   padding: 2rem 1.5rem 1.5rem 1.5rem;
   margin-bottom: 2rem;
-  box-shadow: 0 2px 8px rgba(20,24,31,0.08);
+  box-shadow: 0 2px 8px rgba(20, 24, 31, 0.08);
 }
 .settings-section-title {
   color: white;
@@ -1347,7 +1387,9 @@ html {
   margin-top: 0.25rem;
   outline: none;
   box-shadow: none;
-  transition: background 0.2s, color 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s;
 }
 .settings-input:focus {
   background: #23293a;
@@ -1361,7 +1403,10 @@ html {
   font-weight: 600;
   margin-bottom: 0.5rem;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s, transform 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    transform 0.2s;
   width: 100%;
 }
 .settings-btn-primary {
@@ -1456,13 +1501,15 @@ html {
   border: none;
   margin-right: 0.75rem;
   cursor: pointer;
-  transition: background 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 8px rgba(20,24,31,0.08);
+  transition:
+    background 0.2s,
+    box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(20, 24, 31, 0.08);
   padding: 0;
 }
 .settings-back-btn:hover {
   background: #22c55e22;
-  box-shadow: 0 4px 16px rgba(34,197,94,0.12);
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.12);
 }
 .settings-back-btn svg {
   color: #22c55e;
@@ -1518,8 +1565,12 @@ html {
   animation: heroWave 4s linear infinite alternate;
 }
 @keyframes heroWave {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(10px); }
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(10px);
+  }
 }
 .hero-headline {
   font-size: 2rem;
@@ -1545,8 +1596,12 @@ html {
   margin-left: 0.5rem;
 }
 @keyframes stretchPulse {
-  0% { box-shadow: 0 0 0 0 #22c55e44; }
-  100% { box-shadow: 0 0 16px 8px #22c55e22; }
+  0% {
+    box-shadow: 0 0 0 0 #22c55e44;
+  }
+  100% {
+    box-shadow: 0 0 16px 8px #22c55e22;
+  }
 }
 .routine-icon {
   width: 2rem;

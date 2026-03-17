@@ -16,7 +16,7 @@ const MessageCarousel = ({ messages, className = '', style = {} }) => {
     timeoutRef.current = setTimeout(() => {
       setFade(false);
       timeoutRef.current = setTimeout(() => {
-        setIndex((prev) => (prev + 1) % messages.length);
+        setIndex(prev => (prev + 1) % messages.length);
         setFade(true);
       }, FADE_DURATION);
     }, INTERVAL);
@@ -54,4 +54,4 @@ const MessageCarousel = ({ messages, className = '', style = {} }) => {
   );
 };
 
-export default MessageCarousel; 
+export default MessageCarousel;
