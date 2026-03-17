@@ -1,5 +1,7 @@
-// Vercel Serverless Function - Proxy to HuggingFace
-// This runs on the server, avoiding CORS issues
+// Vercel Serverless Function - Proxy to HuggingFace & AWS Bedrock
+// This runs on the server, avoiding CORS issues and securing credentials
+
+import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
 
 export default async function handler(req, res) {
   // Enable CORS for development
@@ -16,10 +18,73 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { prompt, parameters } = req.body;
-  
-  // Get HuggingFace token from environment variable
-  const HF_TOKEN = process.env.HF_WRITE_TOKEN;
+  const { provider, prompt, parameters, modelId } = req.body;
+
+  // --- AWS BEDROCK PROXY ---
+  if (provider === 'bedrock') {
+    const accessKeyId = process.env.AWS_ACCESS_KEY_ID || process.env.VITE_AWS_ACCESS_KEY;
+    const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || process.env.VITE_AWS_SECRET_KEY;
+    const region = process.env.AWS_REGION || process.env.VITE_AWS_REGION || 'us-east-1';
+
+    if (!accessKeyId || !secretAccessKey) {
+      return res.status(500).json({ error: 'AWS credentials not configured on server' });
+    }
+
+    try {
+      const client = new BedrockRuntimeClient({
+        region: region,
+        credentials: {
+          accessKeyId: accessKeyId,
+          secretAccessKey: secretAccessKey,
+        },
+      });
+
+      let payload = {};
+      if (modelId.includes('claude-3')) {
+        payload = {
+          anthropic_version: "bedrock-2023-05-31",
+          max_tokens: 2000,
+          temperature: 0.7,
+          messages: [{ role: "user", content: [{ type: "text", text: prompt }] }]
+        };
+      } else if (modelId.includes('mistral')) {
+        payload = { prompt: `<s>[INST] ${prompt} [/INST]`, max_tokens: 2000, temperature: 0.7 };
+      } else if (modelId.includes('llama3') || modelId.includes('meta')) {
+        payload = { prompt: `<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n${prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n`, temperature: 0.7, top_p: 0.9, max_gen_len: 2000 };
+      } else {
+        payload = { prompt: `\n\nHuman: ${prompt}\n\nAssistant:`, max_tokens_to_sample: 2000, temperature: 0.7 };
+      }
+
+      const command = new InvokeModelCommand({
+        modelId: modelId,
+        contentType: "application/json",
+        accept: "application/json",
+        body: JSON.stringify(payload),
+      });
+
+      const response = await client.send(command);
+      const responseBody = JSON.parse(new TextDecoder().decode(response.body));
+
+      let responseText = "";
+      if (modelId.includes('claude-3')) {
+        responseText = responseBody.content[0].text;
+      } else if (modelId.includes('mistral')) {
+        responseText = responseBody.outputs[0].text;
+      } else if (modelId.includes('llama3') || modelId.includes('meta')) {
+        responseText = responseBody.generation;
+      } else {
+        responseText = responseBody.completion;
+      }
+
+      return res.status(200).json({ responseText });
+    } catch (error) {
+      console.error('Bedrock serverless error:', error);
+      return res.status(500).json({ error: 'Failed to generate from Bedrock', details: error.message });
+    }
+  }
+
+  // --- HUGGINGFACE STRETCHGPT PROXY ---
+  const HF_TOKEN = process.env.HF_WRITE_TOKEN || process.env.VITE_HF_WRITE_TOKEN;
   
   if (!HF_TOKEN) {
     console.error('HF_WRITE_TOKEN not configured in environment variables');

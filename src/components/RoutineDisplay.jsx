@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { useTimer, useAudio, useWakeLock } from '../hooks'
+import { useTimer, useAudio, useWakeLock, useAuth } from '../hooks'
 import { getYouTubeEmbedUrl } from '../routineGenerator'
 import EvaIcon from './EvaIcon';
+import { supabase } from '../services/supabase';
 
 const RoutineDisplay = ({ routine, preferences, onComplete, onBack, isFallback }) => {
+  const { user } = useAuth();
   // Debug logging to understand what we're receiving
   useEffect(() => {
     console.log('RoutineDisplay mounted with:', {
@@ -20,43 +22,41 @@ const RoutineDisplay = ({ routine, preferences, onComplete, onBack, isFallback }
   const [showVideo, setShowVideo] = useState(true)
   const [completedExercises, setCompletedExercises] = useState([])
   const [isRoutineSaved, setIsRoutineSaved] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
 
-  // Safety check: if no exercises, show error
-  if (!routine || !routine.exercises || routine.exercises.length === 0) {
-    return (
-      <div className="routine-container">
-        <div style={{ padding: '2rem', textAlign: 'center' }}>
-          <h2>No Exercises Available</h2>
-          <p>Unable to generate routine. Please try again.</p>
-          <pre style={{ textAlign: 'left', fontSize: '0.75rem', background: '#1e293b', padding: '1rem', borderRadius: '8px', overflow: 'auto' }}>
-            {JSON.stringify(routine, null, 2)}
-          </pre>
-          <button className="btn" onClick={onBack} style={{ marginTop: '1rem' }}>
-            Back to Preferences
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const handleSaveRoutine = () => {
-    const savedRoutines = JSON.parse(localStorage.getItem('savedRoutines') || '[]');
+  const handleSaveRoutine = async () => {
+    if (!user) return;
+    setIsSaving(true);
+    
     const newRoutine = {
-      id: Date.now(), // Unique ID
+      user_id: user.id,
       name: routine.name,
-      exercises: routine.exercises,
-      totalDuration: routine.totalDuration,
-      difficulty: routine.difficulty,
-      benefits: routine.benefits,
-      tips: routine.tips,
-      cooldownAdvice: routine.cooldownAdvice,
-      preferences: preferences, // Save preferences for context
-      savedAt: new Date().toISOString()
+      routine_data: {
+        exercises: routine.exercises,
+        totalDuration: routine.totalDuration,
+        difficulty: routine.difficulty,
+        benefits: routine.benefits,
+        tips: routine.tips,
+        cooldownAdvice: routine.cooldownAdvice,
+        preferences: preferences, // Save preferences for context
+      }
     };
-    savedRoutines.push(newRoutine);
-    localStorage.setItem('savedRoutines', JSON.stringify(savedRoutines));
-    setIsRoutineSaved(true);
-    alert('Routine saved successfully!');
+
+    try {
+      const { error } = await supabase
+        .from('routines')
+        .insert([newRoutine]);
+
+      if (error) throw error;
+      
+      setIsRoutineSaved(true);
+      alert('Routine saved to your library!');
+    } catch (error) {
+      console.error('Error saving routine:', error);
+      alert('Failed to save routine. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
   
   const currentExercise = routine.exercises[currentExerciseIndex]

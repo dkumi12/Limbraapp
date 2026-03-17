@@ -1,0 +1,35 @@
+# Docker
+.dockerignore
+Dockerfile
+docker-compose.yml
+nginx.conf
+
+# Dependencies (reinstalled inside container)
+node_modules
+
+# Build output (built inside container)
+dist
+dev-dist
+
+# Environment files (passed as build args, not copied)
+.env
+.env.local
+.env*.local
+
+# Git
+.git
+.gitignore
+.github
+
+# Dev tools
+coverage
+.nyc_output
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode
+.idea

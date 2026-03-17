@@ -150,11 +150,14 @@ export class RoutineGenerator {
     };
     
     try {
-      // TEMPORARY: Skip database and force AI generation for testing
-      console.log('⚡ Forcing AI generation for testing...');
-      
-      // Try AI generation
+      // Try AI generation first
+      console.log('⚡ Attempting AI generation...');
       const aiRoutine = await generateAIRoutine(updatedPreferences);
+      
+      if (!aiRoutine || !aiRoutine.exercises || aiRoutine.exercises.length === 0) {
+        throw new Error('AI returned empty or invalid routine');
+      }
+      
       console.log('🤖 AI Routine received:', aiRoutine);
       
       // Defensive video loading: Don't let video errors break the routine
@@ -179,7 +182,7 @@ export class RoutineGenerator {
       };
       
     } catch (error) {
-      console.error('AI generation failed, falling back to local exercises:', error);
+      console.warn('⚠️ AI generation failed or returned invalid data. Falling back to local exercises. Error:', error.message);
       // Fallback to local exercises if AI generation fails
       const selectedExercises = Object.values(this.fallbackExercises).filter(ex => 
         preferences.bodyParts.some(part => ex.bodyParts.includes(part)) &&

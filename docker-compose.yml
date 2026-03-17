@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  limbra:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+        VITE_AI_PROVIDER: ${VITE_AI_PROVIDER}
+        VITE_YOUTUBE_API_KEY: ${VITE_YOUTUBE_API_KEY}
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    environment:
+      # Backend secrets are passed at runtime
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - HF_WRITE_TOKEN=${HF_WRITE_TOKEN}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+
+  # Development service (hot reload, no build step)
+  limbra-dev:
+    image: node:18-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.local
+    command: npm run dev -- --host 0.0.0.0
+    profiles:
+      - dev

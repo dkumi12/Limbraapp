@@ -1,35 +1,31 @@
 // src/services/api.js
-// Updated for StretchGPT V3 Integration
-import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
+// Updated for StretchGPT V3 & Secure Bedrock Integration
 
 // ============================================
 // API CONFIGURATION
 // ============================================
 
 const getOpenRouterAPIKey = () => {
-  return localStorage.getItem('openrouter_api_key') || '';
+  return import.meta.env.VITE_OPENROUTER_API_KEY || '';
 }
 
 const getYouTubeAPIKey = () => {
-  return localStorage.getItem('youtube_api_key') || '';
+  return import.meta.env.VITE_YOUTUBE_API_KEY || '';
 }
 
 const getHuggingFaceToken = () => {
-  return localStorage.getItem('hf_access_token') || '';
+  return import.meta.env.VITE_HF_WRITE_TOKEN || '';
 }
 
 const getSelectedModel = () => {
-  return localStorage.getItem('selected_model') || 'anthropic/claude-3-haiku';
+  return import.meta.env.VITE_SELECTED_MODEL || 'anthropic/claude-3-haiku';
 }
 
 const getAIProvider = () => {
-  return localStorage.getItem('ai_provider') || 'stretchgpt';
+  return import.meta.env.VITE_AI_PROVIDER || 'stretchgpt';
 }
 
-const getAwsAccessKey = () => localStorage.getItem('aws_access_key') || '';
-const getAwsSecretKey = () => localStorage.getItem('aws_secret_key') || '';
-const getAwsRegion = () => localStorage.getItem('aws_region') || 'us-east-1';
-const getAwsModelId = () => localStorage.getItem('aws_model_id') || 'mistral.mistral-small-2402-v1:0';
+const getAwsModelId = () => import.meta.env.VITE_AWS_MODEL_ID || 'mistral.mistral-small-2402-v1:0';
 
 // API Endpoints
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
@@ -220,14 +216,7 @@ export function flattenV3Routine(v3Routine) {
 // ============================================
 
 async function generateBedrockRoutine(preferences) {
-  const accessKeyId = getAwsAccessKey();
-  const secretAccessKey = getAwsSecretKey();
-  const region = getAwsRegion();
   const modelId = getAwsModelId();
-
-  if (!accessKeyId || !secretAccessKey) {
-    throw new Error('AWS Bedrock credentials not configured. Please add them in Settings.');
-  }
 
   const { duration, goals, bodyParts, equipment, difficulty } = preferences;
   const goalText = goals.join(', ').replace(/_/g, ' ');
@@ -272,68 +261,25 @@ Return ONLY valid JSON.
 `;
 
   try {
-    const client = new BedrockRuntimeClient({
-      region: region,
-      credentials: {
-        accessKeyId: accessKeyId,
-        secretAccessKey: secretAccessKey,
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
       },
+      body: JSON.stringify({
+        provider: 'bedrock',
+        prompt: prompt,
+        modelId: modelId
+      })
     });
 
-    let payload = {};
-    if (modelId.includes('claude-3')) {
-      payload = {
-        anthropic_version: "bedrock-2023-05-31",
-        max_tokens: 2000,
-        temperature: 0.7,
-        messages: [
-          {
-            role: "user",
-            content: [{ type: "text", text: prompt }]
-          }
-        ]
-      };
-    } else if (modelId.includes('mistral')) {
-      payload = {
-        prompt: `<s>[INST] ${prompt} [/INST]`,
-        max_tokens: 2000,
-        temperature: 0.7
-      };
-    } else if (modelId.includes('llama3') || modelId.includes('meta')) {
-      payload = {
-        prompt: `<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n${prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n`,
-        temperature: 0.7,
-        top_p: 0.9,
-        max_gen_len: 2000
-      };
-    } else {
-      payload = {
-        prompt: `\n\nHuman: ${prompt}\n\nAssistant:`,
-        max_tokens_to_sample: 2000,
-        temperature: 0.7,
-      };
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Serverless API error: ${response.status} - ${errorData.error || 'Unknown error'}`);
     }
 
-    const command = new InvokeModelCommand({
-      modelId: modelId,
-      contentType: "application/json",
-      accept: "application/json",
-      body: JSON.stringify(payload),
-    });
-
-    const response = await client.send(command);
-    const responseBody = JSON.parse(new TextDecoder().decode(response.body));
-
-    let responseText = "";
-    if (modelId.includes('claude-3')) {
-      responseText = responseBody.content[0].text;
-    } else if (modelId.includes('mistral')) {
-      responseText = responseBody.outputs[0].text;
-    } else if (modelId.includes('llama3') || modelId.includes('meta')) {
-      responseText = responseBody.generation;
-    } else {
-      responseText = responseBody.completion;
-    }
+    const data = await response.json();
+    let responseText = data.responseText;
 
     const jsonMatch = responseText.match(/[\{\[][\s\S]*[\}\]]/);
     if (!jsonMatch) {
@@ -611,58 +557,27 @@ Please provide a JSON response with exactly this structure:
     let responseText = "";
 
     if (aiProvider === 'bedrock') {
-      const accessKeyId = getAwsAccessKey();
-      const secretAccessKey = getAwsSecretKey();
-      const region = getAwsRegion();
       const modelId = getAwsModelId();
 
-      if (!accessKeyId || !secretAccessKey) {
-        throw new Error('AWS Bedrock credentials not configured. Please add them in Settings.');
-      }
-
-      const client = new BedrockRuntimeClient({
-        region: region,
-        credentials: {
-          accessKeyId: accessKeyId,
-          secretAccessKey: secretAccessKey,
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
         },
+        body: JSON.stringify({
+          provider: 'bedrock',
+          prompt: prompt,
+          modelId: modelId
+        })
       });
 
-      let payload = {};
-      if (modelId.includes('claude-3')) {
-        payload = {
-          anthropic_version: "bedrock-2023-05-31",
-          max_tokens: 2000,
-          temperature: 0.7,
-          messages: [{ role: "user", content: [{ type: "text", text: prompt }] }]
-        };
-      } else if (modelId.includes('mistral')) {
-        payload = { prompt: `<s>[INST] ${prompt} [/INST]`, max_tokens: 2000, temperature: 0.7 };
-      } else if (modelId.includes('llama3') || modelId.includes('meta')) {
-        payload = { prompt: `<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n${prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n`, temperature: 0.7, top_p: 0.9, max_gen_len: 2000 };
-      } else {
-        payload = { prompt: `\n\nHuman: ${prompt}\n\nAssistant:`, max_tokens_to_sample: 2000, temperature: 0.7 };
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Serverless API error: ${response.status} - ${errorData.error || 'Unknown error'}`);
       }
 
-      const command = new InvokeModelCommand({
-        modelId: modelId,
-        contentType: "application/json",
-        accept: "application/json",
-        body: JSON.stringify(payload),
-      });
-
-      const response = await client.send(command);
-      const responseBody = JSON.parse(new TextDecoder().decode(response.body));
-
-      if (modelId.includes('claude-3')) {
-        responseText = responseBody.content[0].text;
-      } else if (modelId.includes('mistral')) {
-        responseText = responseBody.outputs[0].text;
-      } else if (modelId.includes('llama3') || modelId.includes('meta')) {
-        responseText = responseBody.generation;
-      } else {
-        responseText = responseBody.completion;
-      }
+      const data = await response.json();
+      responseText = data.responseText;
     } else {
       const apiKey = getOpenRouterAPIKey();
       const selectedModel = getSelectedModel();
