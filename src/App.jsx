@@ -101,8 +101,7 @@ function App() {
 
       if (e.detail === 'home') {
         setShowAPIConfig(false);
-        // If there's an active routine, show it. Otherwise show preferences.
-        setCurrentScreen(routine ? 'routine' : 'preferences');
+        setCurrentScreen('preferences');
       }
       if (e.detail === 'settings') {
         setShowAPIConfig(true);
@@ -329,7 +328,12 @@ function App() {
               )}
             </header>
 
-            <PreferencesForm onGenerate={handleGenerateRoutine} stats={stats} />
+            <PreferencesForm
+              onGenerate={handleGenerateRoutine}
+              stats={stats}
+              activeRoutine={routine}
+              onResume={() => setCurrentScreen('routine')}
+            />
           </>
         )}
 
@@ -468,7 +472,7 @@ function App() {
             className={`nav-item${currentScreen === 'preferences' || currentScreen === 'routine' ? ' nav-item-active' : ''}`}
             onClick={() => {
               setShowAPIConfig(false);
-              setCurrentScreen(routine ? 'routine' : 'preferences');
+              setCurrentScreen('preferences');
               setShowCompletionNotification(false);
             }}
           >

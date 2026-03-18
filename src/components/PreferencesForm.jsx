@@ -12,7 +12,7 @@ import MessageCarousel from './MessageCarousel';
 import ExerciseSearch from './ExerciseSearch/ExerciseSearch';
 import { useAuth } from '../hooks';
 
-const PreferencesForm = ({ onGenerate, stats }) => {
+const PreferencesForm = ({ onGenerate, stats, activeRoutine, onResume }) => {
   const { profile } = useAuth();
   const [duration, setDuration] = useState(10);
   const [goals, setGoals] = useState([]);
@@ -320,6 +320,60 @@ const PreferencesForm = ({ onGenerate, stats }) => {
           >
             ×
           </button>
+        </div>
+      )}
+
+      {/* Resume Active Routine Banner */}
+      {activeRoutine && !showSearch && (
+        <div
+          className="resume-routine-banner"
+          onClick={onResume}
+          style={{
+            background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+            borderRadius: '1rem',
+            padding: '1rem',
+            marginBottom: '1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(34, 197, 94, 0.3)',
+            color: 'white',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div
+              style={{
+                background: 'rgba(255,255,255,0.2)',
+                borderRadius: '50%',
+                padding: '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <EvaIcon
+                name="play-circle-outline"
+                width={24}
+                height={24}
+                fill="white"
+              />
+            </div>
+            <div>
+              <div style={{ fontWeight: 'bold', fontSize: '1rem' }}>
+                Resume Active Routine
+              </div>
+              <div style={{ fontSize: '0.85rem', opacity: 0.9 }}>
+                {activeRoutine.name}
+              </div>
+            </div>
+          </div>
+          <EvaIcon
+            name="chevron-right-outline"
+            width={24}
+            height={24}
+            fill="white"
+          />
         </div>
       )}
 
